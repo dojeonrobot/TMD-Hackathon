@@ -3,475 +3,498 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>TMD Hackathon</title>
+  <title>TMD Hackathon Ideas</title>
   <style>
     :root {
-      --bg: #f6f8fc;
-      --card: rgba(255, 255, 255, 0.9);
-      --text: #1f2937;
-      --sub: #6b7280;
-      --line: #e5e7eb;
-      --blue: #2563eb;
-      --blue-soft: #eff6ff;
-      --green: #059669;
-      --green-soft: #ecfdf5;
-      --orange: #ea580c;
-      --orange-soft: #fff7ed;
-      --shadow: 0 16px 40px rgba(15, 23, 42, 0.08);
-      --radius: 22px;
+      /* Base Colors */
+      --bg-color: #f4f7fb;
+      --text-main: #1e293b;
+      --text-muted: #64748b;
+      --border-color: #e2e8f0;
+      
+      /* Theme: Blue (Traffic) */
+      --blue-light: #eff6ff;
+      --blue-mid: #bfdbfe;
+      --blue-main: #3b82f6;
+      --blue-dark: #1d4ed8;
+      
+      /* Theme: Green (Tourism) */
+      --green-light: #f0fdf4;
+      --green-mid: #bbf7d0;
+      --green-main: #22c55e;
+      --green-dark: #15803d;
+      
+      /* Theme: Orange (Eco) */
+      --orange-light: #fff7ed;
+      --orange-mid: #fed7aa;
+      --orange-main: #f97316;
+      --orange-dark: #c2410c;
+
+      --radius-lg: 24px;
+      --radius-md: 16px;
+      --shadow-default: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.01);
+      --shadow-hover: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
     }
 
     * {
       box-sizing: border-box;
+      margin: 0;
+      padding: 0;
     }
 
     body {
-      margin: 0;
-      font-family: "Pretendard", "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
-      color: var(--text);
-      background:
-        radial-gradient(circle at top left, rgba(37, 99, 235, 0.08), transparent 30%),
-        radial-gradient(circle at top right, rgba(5, 150, 105, 0.07), transparent 25%),
-        linear-gradient(180deg, #f9fbff 0%, #f4f7fb 100%);
+      font-family: "Pretendard", -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
+      color: var(--text-main);
+      background-color: var(--bg-color);
+      background-image: 
+        radial-gradient(circle at 10% 0%, rgba(59, 130, 246, 0.05) 0%, transparent 40%),
+        radial-gradient(circle at 90% 20%, rgba(34, 197, 94, 0.05) 0%, transparent 40%);
       line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
     }
 
-    a {
-      color: inherit;
-      text-decoration: none;
-    }
+    a { text-decoration: none; }
+    ul { list-style: none; }
 
-    .wrap {
-      max-width: 1240px;
+    .container {
+      max-width: 1280px;
       margin: 0 auto;
-      padding: 40px 20px 80px;
+      padding: 60px 24px 100px;
     }
 
+    /* Hero Section */
     .hero {
-      background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 55%, #2563eb 100%);
+      background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 100%);
       color: white;
-      padding: 42px;
-      border-radius: 30px;
-      box-shadow: 0 24px 50px rgba(30, 58, 138, 0.24);
+      padding: 56px 48px;
+      border-radius: 32px;
+      box-shadow: 0 24px 50px rgba(30, 58, 138, 0.2);
       position: relative;
       overflow: hidden;
+      margin-bottom: 64px;
+      text-align: center;
     }
 
-    .hero::after {
+    .hero::before {
       content: "";
       position: absolute;
-      top: -80px;
-      right: -80px;
-      width: 220px;
-      height: 220px;
-      background: rgba(255, 255, 255, 0.08);
-      border-radius: 50%;
+      top: -50%; left: -10%;
+      width: 50%; height: 200%;
+      background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 60%);
+      transform: rotate(30deg);
     }
 
     .hero-badge {
-      display: inline-block;
-      padding: 8px 14px;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 16px;
       border-radius: 999px;
-      background: rgba(255, 255, 255, 0.14);
-      border: 1px solid rgba(255, 255, 255, 0.18);
+      background: rgba(255, 255, 255, 0.15);
+      border: 1px solid rgba(255, 255, 255, 0.2);
       font-size: 14px;
-      font-weight: 700;
-      margin-bottom: 18px;
-      backdrop-filter: blur(8px);
+      font-weight: 600;
+      margin-bottom: 24px;
+      backdrop-filter: blur(10px);
     }
 
     .hero h1 {
-      margin: 0 0 12px;
-      font-size: clamp(32px, 5vw, 52px);
-      line-height: 1.12;
+      font-size: clamp(32px, 5vw, 48px);
+      line-height: 1.3;
       letter-spacing: -0.02em;
+      margin-bottom: 16px;
+      font-weight: 800;
     }
 
     .hero p {
-      margin: 0;
-      max-width: 760px;
-      color: rgba(255, 255, 255, 0.88);
-      font-size: 17px;
+      max-width: 680px;
+      margin: 0 auto;
+      color: rgba(255, 255, 255, 0.85);
+      font-size: 18px;
+      word-break: keep-all;
     }
 
+    /* Section Header */
     .section-head {
-      margin: 38px 0 18px;
-      display: flex;
-      justify-content: space-between;
-      align-items: end;
-      gap: 12px;
-      flex-wrap: wrap;
+      text-align: center;
+      margin-bottom: 40px;
     }
 
     .section-head h2 {
-      margin: 0;
-      font-size: 28px;
-      letter-spacing: -0.02em;
+      font-size: 32px;
+      font-weight: 800;
+      margin-bottom: 12px;
     }
 
     .section-head p {
-      margin: 0;
-      color: var(--sub);
-      font-size: 15px;
+      color: var(--text-muted);
+      font-size: 16px;
     }
 
+    /* Grid & Cards */
     .grid {
       display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 22px;
+      grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+      gap: 32px;
     }
 
     .card {
-      background: var(--card);
-      border: 1px solid rgba(255, 255, 255, 0.9);
-      border-radius: var(--radius);
-      padding: 26px;
-      box-shadow: var(--shadow);
-      backdrop-filter: blur(10px);
-      transition: transform 0.25s ease, box-shadow 0.25s ease;
+      background: #ffffff;
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-default);
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      display: flex;
+      flex-direction: column;
       position: relative;
       overflow: hidden;
+      border: 1px solid rgba(0,0,0,0.04);
     }
 
     .card:hover {
-      transform: translateY(-6px);
-      box-shadow: 0 24px 44px rgba(15, 23, 42, 0.12);
+      transform: translateY(-8px);
+      box-shadow: var(--shadow-hover);
     }
 
-    .card.blue { border-top: 6px solid var(--blue); }
-    .card.green { border-top: 6px solid var(--green); }
-    .card.orange { border-top: 6px solid var(--orange); }
+    /* Card Top Decoration */
+    .card-deco {
+      height: 8px;
+      width: 100%;
+    }
+    .card.blue .card-deco { background: linear-gradient(90deg, var(--blue-main), #60a5fa); }
+    .card.green .card-deco { background: linear-gradient(90deg, var(--green-main), #4ade80); }
+    .card.orange .card-deco { background: linear-gradient(90deg, var(--orange-main), #fb923c); }
 
-    .topline {
+    .card-body {
+      padding: 32px;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Card Header */
+    .card-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      gap: 10px;
-      margin-bottom: 14px;
+      margin-bottom: 20px;
     }
 
     .chip {
       display: inline-flex;
       align-items: center;
       gap: 6px;
-      padding: 7px 12px;
+      padding: 6px 14px;
       border-radius: 999px;
-      font-size: 13px;
+      font-size: 14px;
       font-weight: 700;
-      white-space: nowrap;
     }
-
-    .chip.blue {
-      background: var(--blue-soft);
-      color: var(--blue);
-    }
-
-    .chip.green {
-      background: var(--green-soft);
-      color: var(--green);
-    }
-
-    .chip.orange {
-      background: var(--orange-soft);
-      color: var(--orange);
-    }
+    .card.blue .chip { background: var(--blue-light); color: var(--blue-dark); }
+    .card.green .chip { background: var(--green-light); color: var(--green-dark); }
+    .card.orange .chip { background: var(--orange-light); color: var(--orange-dark); }
 
     .example-no {
-      font-size: 13px;
-      color: var(--sub);
-      font-weight: 700;
+      font-size: 14px;
+      color: var(--text-muted);
+      font-weight: 600;
+      background: #f1f5f9;
+      padding: 4px 10px;
+      border-radius: 8px;
     }
 
     .card h3 {
-      margin: 0 0 14px;
-      font-size: 26px;
-      line-height: 1.25;
-      letter-spacing: -0.02em;
+      font-size: 24px;
+      font-weight: 800;
+      margin-bottom: 16px;
+      line-height: 1.3;
+      word-break: keep-all;
     }
 
-    .one-line {
-      margin: 0 0 18px;
-      padding: 14px 16px;
-      border-radius: 16px;
+    /* Highlighted Question */
+    .question-box {
       background: #f8fafc;
-      border: 1px solid var(--line);
+      border-left: 4px solid var(--border-color);
+      padding: 16px 20px;
+      border-radius: 0 var(--radius-md) var(--radius-md) 0;
       font-weight: 700;
-      font-size: 15px;
+      font-size: 16px;
+      color: var(--text-main);
+      margin-bottom: 28px;
+      position: relative;
     }
+    .card.blue .question-box { border-left-color: var(--blue-main); background: var(--blue-light); }
+    .card.green .question-box { border-left-color: var(--green-main); background: var(--green-light); }
+    .card.orange .question-box { border-left-color: var(--orange-main); background: var(--orange-light); }
 
+    /* Content Blocks */
     .block {
-      margin-top: 18px;
-      padding-top: 18px;
-      border-top: 1px solid var(--line);
+      margin-bottom: 24px;
     }
-
-    .block:first-of-type {
-      margin-top: 0;
-      padding-top: 0;
-      border-top: none;
+    .block:last-of-type {
+      margin-bottom: 0;
     }
 
     .block-title {
-      margin: 0 0 8px;
-      font-size: 15px;
-      font-weight: 800;
-      color: #111827;
-    }
-
-    .problem {
-      margin: 0;
-      color: #374151;
-      font-size: 15px;
-    }
-
-    ul {
-      margin: 0;
-      padding-left: 18px;
-      color: #374151;
-      font-size: 15px;
-    }
-
-    li + li {
-      margin-top: 6px;
-    }
-
-    .actions {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--text-muted);
+      margin-bottom: 10px;
       display: flex;
-      gap: 10px;
-      margin-top: 24px;
-      flex-wrap: wrap;
+      align-items: center;
+      gap: 6px;
     }
 
-    .btn {
-      display: inline-flex;
+    .problem-text {
+      font-size: 15px;
+      color: #475569;
+      background: #f1f5f9;
+      padding: 14px 16px;
+      border-radius: 12px;
+      word-break: keep-all;
+    }
+
+    /* Check List */
+    .check-list li {
+      position: relative;
+      padding-left: 28px;
+      margin-bottom: 10px;
+      font-size: 15px;
+      color: #334155;
+      font-weight: 500;
+    }
+    .check-list li::before {
+      content: "✓";
+      position: absolute;
+      left: 0;
+      top: 0px;
+      width: 20px; height: 20px;
+      border-radius: 50%;
+      display: flex;
       align-items: center;
       justify-content: center;
-      min-height: 44px;
-      padding: 0 16px;
-      border-radius: 12px;
-      font-weight: 700;
-      font-size: 14px;
-      transition: all 0.2s ease;
-    }
-
-    .btn.primary {
-      background: #111827;
+      font-size: 12px;
+      font-weight: bold;
       color: white;
     }
+    .card.blue .check-list li::before { background: var(--blue-main); }
+    .card.green .check-list li::before { background: var(--green-main); }
+    .card.orange .check-list li::before { background: var(--orange-main); }
 
-    .btn.primary:hover {
-      background: #0b1220;
+    /* Tags */
+    .tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .tag {
+      padding: 8px 14px;
+      border-radius: 10px;
+      font-size: 14px;
+      font-weight: 600;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      border: 1px solid var(--border-color);
+      background: white;
+      color: #475569;
+    }
+    
+    .card-footer {
+      margin-top: auto;
+      padding-top: 28px;
     }
 
-    .btn.ghost {
-      background: #f3f4f6;
-      color: #111827;
-      border: 1px solid #e5e7eb;
+    /* Button */
+    .btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      padding: 14px;
+      border-radius: 14px;
+      font-weight: 700;
+      font-size: 16px;
+      transition: all 0.2s;
+      cursor: pointer;
     }
-
-    .btn.ghost:hover {
-      background: #e5e7eb;
-    }
+    .card.blue .btn { background: var(--blue-main); color: white; }
+    .card.blue .btn:hover { background: var(--blue-dark); }
+    
+    .card.green .btn { background: var(--green-main); color: white; }
+    .card.green .btn:hover { background: var(--green-dark); }
+    
+    .card.orange .btn { background: var(--orange-main); color: white; }
+    .card.orange .btn:hover { background: var(--orange-dark); }
 
     .footer-note {
-      margin-top: 26px;
       text-align: center;
-      color: var(--sub);
+      margin-top: 60px;
+      color: #94a3b8;
       font-size: 14px;
+      font-weight: 500;
     }
 
-    @media (max-width: 1024px) {
-      .grid {
-        grid-template-columns: 1fr;
-      }
-
-      .hero {
-        padding: 32px 24px;
-      }
-
-      .card h3 {
-        font-size: 24px;
-      }
-    }
-
-    @media (max-width: 640px) {
-      .wrap {
-        padding: 20px 14px 50px;
-      }
-
-      .hero h1 {
-        font-size: 34px;
-      }
-
-      .hero p {
-        font-size: 15px;
-      }
-
-      .section-head h2 {
-        font-size: 22px;
-      }
-
-      .card {
-        padding: 20px;
-      }
+    @media (max-width: 768px) {
+      .container { padding: 30px 20px 60px; }
+      .hero { padding: 40px 24px; border-radius: 24px; margin-bottom: 40px; }
+      .card-body { padding: 24px; }
+      .section-head h2 { font-size: 26px; }
     }
   </style>
 </head>
 <body>
-  <div class="wrap">
+  <div class="container">
     <section class="hero">
-      <div class="hero-badge">TMD Hackathon · 강남구 문제 해결 아이디어</div>
-      <h1>지역의 불편을, <br>아이디어로 바꿔보는 해커톤</h1>
+      <div class="hero-badge">✨ TMD Hackathon</div>
+      <h1>지역의 불편을,<br>아이디어로 바꿔보는 해커톤</h1>
       <p>
-        강남구 안에서 실제로 체감할 수 있는 문제를 주제로,
-        생활밀착형 서비스와 데이터 기반 해결책을 상상해보는 예시입니다.
-        아래 3가지 주제는 해커톤 문제 정의와 결과물 구상에 바로 활용할 수 있습니다.
+        강남구 안에서 실제로 체감할 수 있는 문제를 주제로,<br> 생활밀착형 서비스와 데이터 기반 해결책을 상상해보세요.
       </p>
     </section>
 
     <div class="section-head">
-      <div>
-        <h2>해커톤 주제 예시</h2>
-        <p>문제 · 아이디어 · 결과물 · 한 줄 정의가 한눈에 보이도록 구성했습니다.</p>
-      </div>
+      <h2>해커톤 주제 예시</h2>
+      <p>문제, 아이디어, 예상 결과물을 한눈에 파악해보세요.</p>
     </div>
 
     <section class="grid">
+      <!-- Card 1: Traffic -->
       <article class="card blue">
-        <div class="topline">
-          <span class="chip blue">🚗 생활 교통</span>
-          <span class="example-no">예시 1</span>
-        </div>
+        <div class="card-deco"></div>
+        <div class="card-body">
+          <div class="card-header">
+            <span class="chip">🚗 생활 교통</span>
+            <span class="example-no">예시 1</span>
+          </div>
 
-        <h3>주차 스트레스 줄이기</h3>
+          <h3>주차 스트레스 줄이기</h3>
+          
+          <div class="question-box">
+            "강남의 주차 불편을 정보 비대칭 없이 줄일 수 있을까?"
+          </div>
 
-        <p class="one-line">
-          “강남의 주차 불편을 정보 비대칭 없이 줄일 수 있을까?”
-        </p>
+          <div class="block">
+            <div class="block-title">🚨 문제 배경</div>
+            <p class="problem-text">강남구는 '우리동네 월정기주차'를 확대 시행하고, 주차민원콜센터도 24시간 운영할 만큼 주차 문제가 핵심 생활 민원입니다.</p>
+          </div>
 
-        <div class="block">
-          <h4 class="block-title">문제</h4>
-          <p class="problem">
-            강남구는 ‘우리동네 월정기주차’를 확대 시행하고, 주차민원콜센터도 24시간 운영할 만큼
-            주차 문제가 생활형 민원으로 이어지고 있습니다.
-          </p>
-        </div>
+          <div class="block">
+            <div class="block-title">💡 아이디어 제안</div>
+            <ul class="check-list">
+              <li>동네별 주차 수요 예측 시스템</li>
+              <li>시간대별 빈 주차면 실시간 추천</li>
+              <li>거주자우선주차·월정기주차 신청 도우미</li>
+              <li>주차 민원 다발 구역 시각화 지도</li>
+            </ul>
+          </div>
 
-        <div class="block">
-          <h4 class="block-title">아이디어 예시</h4>
-          <ul>
-            <li>동네별 주차 수요 예측</li>
-            <li>시간대별 빈 주차면 추천</li>
-            <li>거주자우선주차·월정기주차 신청 도우미</li>
-            <li>주차 민원 다발 구역 시각화</li>
-          </ul>
-        </div>
+          <div class="block">
+            <div class="block-title">🎯 예상 결과물</div>
+            <div class="tags">
+              <span class="tag">📱 내 주변 주차 앱</span>
+              <span class="tag">🗺️ 민원 히트맵</span>
+              <span class="tag">👥 맞춤형 추천 봇</span>
+            </div>
+          </div>
 
-        <div class="block">
-          <h4 class="block-title">결과물 예시</h4>
-          <ul>
-            <li>“내 주변 지금 주차 쉬운 곳” 앱</li>
-            <li>민원 히트맵</li>
-            <li>주민·상인·방문객 유형별 주차 추천 서비스</li>
-          </ul>
-        </div>
-
-        <div class="actions">
-          <a class="btn primary" href="./example1.html">예시 1 보기</a>
+          <div class="card-footer">
+            <a class="btn" href="#">자세히 보기 &rarr;</a>
+          </div>
         </div>
       </article>
 
+      <!-- Card 2: Tourism -->
       <article class="card green">
-        <div class="topline">
-          <span class="chip green">🌍 관광 · 안내</span>
-          <span class="example-no">예시 2</span>
-        </div>
+        <div class="card-deco"></div>
+        <div class="card-body">
+          <div class="card-header">
+            <span class="chip">🌍 관광 · 안내</span>
+            <span class="example-no">예시 2</span>
+          </div>
 
-        <h3>외국인·관광객이 덜 헤매는 강남</h3>
+          <h3>외국인·관광객이 덜 헤매는 강남</h3>
+          
+          <div class="question-box">
+            "강남을 처음 방문하는 사람도 쉽게 이동하고 즐길 수 있게 만들기"
+          </div>
 
-        <p class="one-line">
-          “강남을 처음 오는 사람도 쉽게 움직일 수 있게 만들기”
-        </p>
+          <div class="block">
+            <div class="block-title">🚨 문제 배경</div>
+            <p class="problem-text">강남구는 다국어 기반 관광 플랫폼을 강화하고 K-뷰티 행사를 추진 중이나, 여전히 초행길 안내와 혼잡도 관리가 필요합니다.</p>
+          </div>
 
-        <div class="block">
-          <h4 class="block-title">문제</h4>
-          <p class="problem">
-            강남구는 외국인 관광객을 고려한 다국어·지도 기반 관광 플랫폼을 강화하고,
-            강남페스티벌과 연계한 K-뷰티 행사도 추진하고 있습니다.
-          </p>
-        </div>
+          <div class="block">
+            <div class="block-title">💡 아이디어 제안</div>
+            <ul class="check-list">
+              <li>주요 거리(코엑스, 가로수길) 다국어 동선 추천</li>
+              <li>"지금 여기서 할 수 있는 것" 실시간 플래너</li>
+              <li>외국인 대상 병원·약국·교통·쇼핑 긴급 안내</li>
+              <li>특정 시간대 관광객 혼잡 분산 유도</li>
+            </ul>
+          </div>
 
-        <div class="block">
-          <h4 class="block-title">아이디어 예시</h4>
-          <ul>
-            <li>코엑스·압구정·가로수길 방문객용 다국어 동선 추천</li>
-            <li>“지금 여기서 할 수 있는 것” 실시간 관광 플래너</li>
-            <li>외국인 대상 병원·약국·교통·쇼핑 안내</li>
-            <li>관광객 혼잡 분산 서비스</li>
-          </ul>
-        </div>
+          <div class="block">
+            <div class="block-title">🎯 예상 결과물</div>
+            <div class="tags">
+              <span class="tag">🌐 다국어 웹앱</span>
+              <span class="tag">🤖 AI 관광 동선 추천</span>
+              <span class="tag">📷 QR 거리 안내판</span>
+            </div>
+          </div>
 
-        <div class="block">
-          <h4 class="block-title">결과물 예시</h4>
-          <ul>
-            <li>다국어 웹앱</li>
-            <li>관광 동선 AI 추천 서비스</li>
-            <li>QR 기반 거리 안내 서비스</li>
-          </ul>
-        </div>
-
-        <div class="actions">
-          <a class="btn primary" href="./example2.html">예시 2 보기</a>
+          <div class="card-footer">
+            <a class="btn" href="#">자세히 보기 &rarr;</a>
+          </div>
         </div>
       </article>
 
+      <!-- Card 3: Environment -->
       <article class="card orange">
-        <div class="topline">
-          <span class="chip orange">♻️ 친환경 · 탄소중립</span>
-          <span class="example-no">예시 3</span>
-        </div>
+        <div class="card-deco"></div>
+        <div class="card-body">
+          <div class="card-header">
+            <span class="chip">♻️ 친환경 · 탄소중립</span>
+            <span class="example-no">예시 3</span>
+          </div>
 
-        <h3>탄소중립·일회용품 줄이기</h3>
+          <h3>탄소중립·일회용품 줄이기</h3>
+          
+          <div class="question-box">
+            "생활 속 작은 친환경 행동을 강남구 단위의 데이터로 연결하기"
+          </div>
 
-        <p class="one-line">
-          “생활 속 작은 행동을 강남구 단위의 데이터로 연결하기”
-        </p>
+          <div class="block">
+            <div class="block-title">🚨 문제 배경</div>
+            <p class="problem-text">스마트 회의, 다회용컵 운영 등 탄소중립 실천을 공공기관뿐 아니라 구민과 상업 시설 전반으로 확대해야 합니다.</p>
+          </div>
 
-        <div class="block">
-          <h4 class="block-title">문제</h4>
-          <p class="problem">
-            강남구는 종이 없는 스마트 회의, 청사 내 다회용컵 운영 등
-            탄소중립 실천을 생활 속에서 확대하고 있습니다.
-          </p>
-        </div>
+          <div class="block">
+            <div class="block-title">💡 아이디어 제안</div>
+            <ul class="check-list">
+              <li>동네 카페 다회용컵 사용 리워드 지도</li>
+              <li>대형 행사장 쓰레기 분리배출 도우미</li>
+              <li>주민 참여형 탄소절감 게이미피케이션 앱</li>
+              <li>"우리 동네 친환경 점포" 큐레이션</li>
+            </ul>
+          </div>
 
-        <div class="block">
-          <h4 class="block-title">아이디어 예시</h4>
-          <ul>
-            <li>카페 다회용컵 리워드 지도</li>
-            <li>행사장 쓰레기 분리배출 도우미</li>
-            <li>주민 참여형 탄소절감 챌린지 앱</li>
-            <li>“우리 동네 친환경 점포” 큐레이션 서비스</li>
-          </ul>
-        </div>
+          <div class="block">
+            <div class="block-title">🎯 예상 결과물</div>
+            <div class="tags">
+              <span class="tag">🪙 에코 리워드 앱</span>
+              <span class="tag">♻️ 분리배출 스캐너</span>
+              <span class="tag">📋 친환경 행사 툴킷</span>
+            </div>
+          </div>
 
-        <div class="block">
-          <h4 class="block-title">결과물 예시</h4>
-          <ul>
-            <li>탄소 절감 리워드 앱</li>
-            <li>QR 분리배출 안내 서비스</li>
-            <li>행사 운영자용 친환경 체크리스트 툴</li>
-          </ul>
-        </div>
-
-        <div class="actions">
-          <a class="btn primary" href="./example3.html">예시 3 보기</a>
+          <div class="card-footer">
+            <a class="btn" href="#">자세히 보기 &rarr;</a>
+          </div>
         </div>
       </article>
     </section>
 
     <p class="footer-note">
-      TMD Hackathon · Gangnam Local Problem Solving Examples
+      © 2026 TMD Hackathon · Gangnam Local Problem Solving Examples
     </p>
   </div>
 </body>

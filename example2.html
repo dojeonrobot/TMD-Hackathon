@@ -1,0 +1,636 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Night Park Gacha Collection</title>
+  
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+  <style>
+    body { margin: 0; background-color: #030014; overflow: hidden; font-family: 'Pretendard', sans-serif; }
+    @keyframes slideIn { from { opacity: 0; transform: translateX(20px); } to { opacity: 1; transform: translateX(0); } }
+    @keyframes floatUp { 0% { opacity: 0; transform: translateY(20px) scale(0.8); } 50% { opacity: 0.6; transform: translateY(-50px) scale(1.2); } 100% { opacity: 0; transform: translateY(-100px) scale(0.8); } }
+    @keyframes pulse-slow { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.9; transform: scale(1.02); } }
+    @keyframes aurora { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
+    @keyframes shooting { 0% { transform: translateX(100px) translateY(-100px) rotate(-45deg); opacity: 1; } 100% { transform: translateX(-1000px) translateY(1000px) rotate(-45deg); opacity: 0; } }
+    @keyframes shakeBox { 0%, 100% { transform: translateX(0) scale(1) rotate(0); } 10%,30%,50%,70%,90% { transform: translateX(-8px) scale(1.1) rotate(-5deg); } 20%,40%,60%,80% { transform: translateX(8px) scale(1.1) rotate(5deg); } }
+    @keyframes whiteFlash { 0% { opacity: 0; } 30% { opacity: 1; } 100% { opacity: 0; } }
+    .custom-scrollbar::-webkit-scrollbar { width: 8px; }
+    .custom-scrollbar::-webkit-scrollbar-track { background: rgba(0,0,0,0.3); border-radius: 10px; }
+    .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(168,85,247,0.5); border-radius: 10px; border: 1px solid rgba(255,255,255,0.1); }
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: rgba(168,85,247,0.8); }
+    .diorama-bg { background-image: radial-gradient(circle at top left, rgba(255,255,255,0.1), transparent); }
+    .codex-glow::before { content: ''; position: absolute; inset: -50%; background: conic-gradient(from 0deg, transparent 0%, rgba(236,72,153,0.3) 20%, rgba(99,102,241,0.5) 50%, transparent 80%); animation: spin 4s linear infinite; z-index: 0; }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+
+  <script type="text/babel">
+    const { useState, useEffect, useMemo } = React;
+
+    const TIERS = {
+      1: { name: '레전더리', color: 'text-yellow-400', border: 'border-yellow-400', shadow: 'shadow-[0_0_20px_rgba(250,204,21,0.8)]', bg: 'bg-yellow-900/40', sellPrice: 150 },
+      2: { name: '에픽', color: 'text-purple-400', border: 'border-purple-400', shadow: 'shadow-[0_0_20px_rgba(192,38,211,0.8)]', bg: 'bg-purple-900/40', sellPrice: 50 },
+      3: { name: '레어', color: 'text-blue-400', border: 'border-blue-400', shadow: 'shadow-[0_0_20px_rgba(59,130,246,0.8)]', bg: 'bg-blue-900/40', sellPrice: 20 },
+      4: { name: '언커먼', color: 'text-green-400', border: 'border-green-400', shadow: 'shadow-[0_0_15px_rgba(74,222,128,0.5)]', bg: 'bg-green-900/30', sellPrice: 10 },
+      5: { name: '노멀', color: 'text-gray-300', border: 'border-gray-500', shadow: 'shadow-[0_0_10px_rgba(156,163,175,0.3)]', bg: 'bg-gray-700/50', sellPrice: 5 }
+    };
+
+    const CHAPTERS = ['테마 도감', 'chapter1', 'chapter2', 'chapter3', '공통', '조각'];
+
+    // 🧩 조각 데이터
+    const SHARDS = [
+      { id: 'S1', name: '레전더리 조각', icon: '💎', filter: 'hue-rotate(220deg) saturate(2) drop-shadow(0 0 8px rgba(250,204,21,0.8))', tier: 1, chapter: '조각', isShard: true, price: 500 },
+      { id: 'S2', name: '에픽 조각', icon: '💎', filter: 'hue-rotate(70deg) saturate(1.5) drop-shadow(0 0 8px rgba(192,38,211,0.8))', tier: 2, chapter: '조각', isShard: true, price: 200 },
+      { id: 'S3', name: '레어 조각', icon: '💎', filter: 'hue-rotate(0deg) drop-shadow(0 0 8px rgba(59,130,246,0.8))', tier: 3, chapter: '조각', isShard: true, price: 100 },
+      { id: 'S4', name: '언커먼 조각', icon: '💎', filter: 'hue-rotate(-100deg) saturate(2) drop-shadow(0 0 8px rgba(74,222,128,0.8))', tier: 4, chapter: '조각', isShard: true, price: 50 },
+      { id: 'S5', name: '노멀 조각', icon: '💎', filter: 'hue-rotate(140deg) saturate(2) drop-shadow(0 0 8px rgba(239,68,68,0.8))', tier: 5, chapter: '조각', isShard: true, price: 35 },
+    ];
+
+    const RAW_ITEMS = [
+      {id:'L1',n:'[보이드] 움직이는 보이드',t:1,c:'chapter3',i:'👾',top:1}, {id:'L2',n:'[자동차] 움직이는 자동차',t:1,c:'chapter1',i:'🚙',top:1}, {id:'L3',n:'[동물] 움직이는 동물',t:1,c:'chapter1',i:'🐅',top:1}, {id:'L4',n:'[노트북] 빛/글씨 노트북',t:1,c:'공통',i:'💻',top:1}, {id:'L5',n:'[조명] 오로라 led 무드등',t:1,c:'공통',i:'🌌',top:1}, {id:'L6',n:'[테마] 하모니아 BGM',t:1,c:'chapter2',i:'🎶'}, {id:'L7',n:'[테마] 코덱스 공간 벽지',t:1,c:'chapter3',i:'🌌'}, {id:'L8',n:'[테마] 코덱스 공간 바닥',t:1,c:'chapter3',i:'🕳️'}, {id:'L9',n:'[테마] 회전목마',t:1,c:'chapter3',i:'🎠'}, {id:'L10',n:'[테마] 미니 전광판',t:1,c:'chapter1',i:'🪧'},
+      {id:'E1',n:'[보이드] 표정 바뀌는 보이드',t:2,c:'chapter3',i:'👽',next:'L1'}, {id:'E2',n:'[자동차] 빵 소리 자동차',t:2,c:'chapter1',i:'🚘',next:'L2'}, {id:'E3',n:'[소품] 빛 나오는 지팡이',t:2,c:'chapter3',i:'🪄',top:1}, {id:'E4',n:'[조명] 색 바뀌는 조명',t:2,c:'공통',i:'🚥',next:'L5'}, {id:'E5',n:'[창문] 열고 닫는 창문',t:2,c:'공통',i:'🪟',top:1}, {id:'E7',n:'[문] 열고 닫는 문',t:2,c:'공통',i:'🚪',top:1}, {id:'E6',n:'[테마] 콩쿠르 트로피',t:2,c:'chapter2',i:'🏆'}, {id:'E8',n:'[테마] 옛날 오르골',t:2,c:'chapter2',i:'📻'}, {id:'E9',n:'[테마] 코덱스 일기장',t:2,c:'chapter2',i:'📓'}, {id:'E10',n:'[테마] 도로랜드 풍경',t:2,c:'공통',i:'🏞️'}, {id:'E11',n:'[테마] 신호등',t:2,c:'chapter1',i:'🚦'},
+      {id:'R1',n:'[자동차] 보석 박힌 자동차',t:3,c:'chapter1',i:'✨',next:'E2'}, {id:'R2',n:'[동물] 동물 모형',t:3,c:'chapter1',i:'🧸',next:'L3'}, {id:'R3',n:'[책상] 독서실형 책상',t:3,c:'공통',i:'📚',top:1}, {id:'R4',n:'[침대] 코덱스 문양 침대',t:3,c:'chapter3',i:'🛌',top:1}, {id:'R5',n:'[옷] 로큰롤 룩',t:3,c:'공통',i:'🎸',top:1}, {id:'R6',n:'[소품] 코덱스 지팡이',t:3,c:'chapter3',i:'🦯',next:'E3'}, {id:'R7',n:'[가방] 코덱스 문양 가방',t:3,c:'chapter3',i:'🎒',top:1}, {id:'R8',n:'[책장] 모던 책장',t:3,c:'공통',i:'🗄️',top:1}, {id:'R9',n:'[조명] 레일 조명',t:3,c:'공통',i:'💡',next:'E4'}, {id:'R10',n:'[창문] 알루미늄 틀 창문',t:3,c:'공통',i:'🪟',next:'E5'}, {id:'R11',n:'[문] 코덱스 문양 문',t:3,c:'chapter3',i:'🚪',next:'E7'}, {id:'R12',n:'[커튼] 보석 박힌 커튼',t:3,c:'공통',i:'🕍',top:1}, {id:'R13',n:'[테마] 하모니아 악보',t:3,c:'chapter2',i:'🎼'}, {id:'R14',n:'[테마] 램프',t:3,c:'공통',i:'🪔'}, {id:'R15',n:'[테마] 운전면허 벽지',t:3,c:'chapter1',i:'📜'}, {id:'R16',n:'[테마] 운전면허 바닥',t:3,c:'chapter1',i:'🛣️'}, {id:'R17',n:'[테마] 항공점퍼',t:3,c:'공통',i:'🧥'}, {id:'R18',n:'[테마] 숲 속 벽지',t:3,c:'공통',i:'🌲'}, {id:'R19',n:'[테마] 숲 속 바닥',t:3,c:'공통',i:'🍃'}, {id:'R20',n:'[테마] 콩쿠르 벽지',t:3,c:'chapter2',i:'🎭'}, {id:'R21',n:'[테마] 콩쿠르 바닥',t:3,c:'chapter2',i:'🪵'}, {id:'R22',n:'[테마] 도로랜드 바닥',t:3,c:'공통',i:'🛣️'},
+      {id:'U1',n:'[보이드] 깔끔한 기본 보이드',t:4,c:'chapter3',i:'👻',next:'E1'}, {id:'U2',n:'[자동차] 기본 자동차',t:4,c:'chapter1',i:'🚗',next:'R1'}, {id:'U3',n:'[동물] 동물 액자',t:4,c:'공통',i:'🖼️',next:'R2'}, {id:'U4',n:'[책상] 나무 기본 책상',t:4,c:'공통',i:'🪑',next:'R3'}, {id:'U5',n:'[침대] 넓은 기본 침대',t:4,c:'공통',i:'🛏️',next:'R4'}, {id:'U6',n:'[옷] 옛날 교복',t:4,c:'공통',i:'👔',next:'R5'}, {id:'U7',n:'[소품] 문양 머리띠',t:4,c:'chapter3',i:'🎀',next:'R6'}, {id:'U8',n:'[가방] 기본 가방',t:4,c:'공통',i:'🎒',next:'R7'}, {id:'U9',n:'[책장] 기본 책장',t:4,c:'공통',i:'📚',next:'R8'}, {id:'U10',n:'[노트북] 기본 노트북',t:4,c:'공통',i:'💻',next:'L4'}, {id:'U11',n:'[조명] 기본 팬던트',t:4,c:'공통',i:'🏮',next:'R9'}, {id:'U12',n:'[창문] 나무틀 창문',t:4,c:'공통',i:'🪟',next:'R10'}, {id:'U13',n:'[문] 철/알루미늄 문',t:4,c:'공통',i:'🚪',next:'R11'}, {id:'U14',n:'[커튼] 여러 색상 커튼',t:4,c:'공통',i:'🪟',next:'R12'}, {id:'U15',n:'[테마] 사파리 지도',t:4,c:'chapter1',i:'🗺️'}, {id:'U16',n:'[테마] 수사 뱃지',t:4,c:'공통',i:'📛'}, {id:'U17',n:'[테마] 사파리 미니 화분',t:4,c:'chapter1',i:'🪴'}, {id:'U18',n:'[테마] 컨셉 모자',t:4,c:'chapter1',i:'🧢'}, {id:'U19',n:'[테마] 도로랜드 풍경 액자',t:4,c:'공통',i:'🖼️'},
+      {id:'N1',n:'[보이드] 녹슬은 보이드',t:5,c:'chapter3',i:'🪨',next:'U1'}, {id:'N2',n:'[자동차] 흙먼지 빵꾸 자동차',t:5,c:'chapter1',i:'🏚️',next:'U2'}, {id:'N3',n:'[책상] 지저분한 책상',t:5,c:'공통',i:'🪵',next:'U4'}, {id:'N4',n:'[침대] 매트리스',t:5,c:'공통',i:'🛏️',next:'U5'}, {id:'N5',n:'[옷] 후질근한 옷',t:5,c:'공통',i:'👕',next:'U6'}, {id:'N6',n:'[책장] 이끼 있는 책장',t:5,c:'공통',i:'🪴',next:'U9'}, {id:'N7',n:'[노트북] 옛날 노트북',t:5,c:'공통',i:'📠',next:'U10'}, {id:'N8',n:'[조명] 맛 나간 전구',t:5,c:'공통',i:'🔌',next:'U11'}, {id:'N9',n:'[창문] 깨진 창문',t:5,c:'공통',i:'🕸️',next:'U12'}, {id:'N10',n:'[문] 이끼 있는 문',t:5,c:'공통',i:'🚪',next:'U13'}, {id:'N11',n:'[테마] 경고등 조명',t:5,c:'공통',i:'🚨'}, {id:'N12',n:'[테마] 도로랜드 조끼',t:5,c:'공통',i:'🦺'}, {id:'N13',n:'[테마] 낡은 시계',t:5,c:'공통',i:'⏱️'}, {id:'N14',n:'[테마] 수사세트',t:5,c:'공통',i:'🔍'}, {id:'N15',n:'[테마] 자일로 안경',t:5,c:'공통',i:'👓'}, {id:'N16',n:'[테마] 기술팀 마스크',t:5,c:'chapter1',i:'😷'}, {id:'N17',n:'[테마] 도로랜드 풍선',t:5,c:'공통',i:'🎈'}, {id:'N18',n:'[테마] 선대 안경',t:5,c:'공통',i:'🕶️'}, {id:'N19',n:'[테마] 자일로 벽지',t:5,c:'공통',i:'📜'}, {id:'N20',n:'[테마] 자일로 바닥',t:5,c:'공통',i:'🟫'}, {id:'N21',n:'[테마] 동굴 안 벽지',t:5,c:'chapter1',i:'🪨'}, {id:'N22',n:'[테마] 동굴 바닥',t:5,c:'chapter1',i:'🪨'}, {id:'N23',n:'[테마] 옛날 사진 액자들',t:5,c:'공통',i:'🖼️'}, {id:'N24',n:'[테마] 바위',t:5,c:'공통',i:'🪨'}, {id:'N25',n:'[테마] 풀',t:5,c:'공통',i:'🌿'}, {id:'N26',n:'[테마] 나무',t:5,c:'공통',i:'🌳'},
+      {id:'NEW1',n:'[의자] 타이어 의자',t:4,c:'chapter1',i:'🛞',top:1}, {id:'NEW2',n:'[테이블] 신호등 테이블',t:3,c:'chapter1',i:'🚥',top:1},
+      {id:'NEW3',n:'[의자] 공중부양 마법 의자',t:2,c:'chapter3',i:'💺',top:1}, {id:'NEW4',n:'[테이블] 별빛 유리 테이블',t:3,c:'chapter3',i:'🌌',top:1},
+      {id:'NEW5',n:'[의자] 벨벳 오페라 의자',t:4,c:'chapter2',i:'🪑',top:1}, {id:'NEW6',n:'[테이블] 그랜드 피아노 테이블',t:3,c:'chapter2',i:'🎹',top:1},
+      {id:'NEW7',n:'[의자] 버스정류장 벤치',t:4,c:'공통',i:'🪑',top:1}, {id:'NEW8',n:'[테이블] 드럼통 테이블',t:3,c:'공통',i:'🛢️',top:1},
+      {id:'NEW9',n:'[의자] 낡은 회전의자',t:4,c:'공통',i:'💺',top:1}, {id:'NEW10',n:'[테이블] 서류더미 책상',t:3,c:'공통',i:'📁',top:1},
+      {id:'NEW11',n:'[의자] 이끼 낀 바위 의자',t:5,c:'chapter1',i:'🪨',top:1}, {id:'NEW12',n:'[테이블] 수정 광석 테이블',t:3,c:'chapter1',i:'💎',top:1},
+      {id:'NEW13',n:'[의자] 통나무 그루터기 의자',t:4,c:'공통',i:'🪵',top:1}, {id:'NEW14',n:'[테이블] 나뭇잎 피크닉 테이블',t:3,c:'공통',i:'🍃',top:1},
+      
+      {id:'C2_M0',n:'[소품] 부서진 보면대',t:5,c:'chapter2',i:'🎼',next:'C2_M1'}, {id:'C2_M1',n:'[소품] 보면대',t:4,c:'chapter2',i:'🎼',next:'C2_M2'}, {id:'C2_M2',n:'[소품] 지휘봉',t:3,c:'chapter2',i:'🪄',next:'C2_M3'}, {id:'C2_M3',n:'[소품] 빛이 나오는 지휘봉',t:2,c:'chapter2',i:'✨',top:1},
+      {id:'C2_V1',n:'[악기] 낡은 바이올린',t:5,c:'chapter2',i:'🎻',next:'C2_V2'}, {id:'C2_V2',n:'[악기] 일반 바이올린',t:4,c:'chapter2',i:'🎻',next:'C2_V3'}, {id:'C2_V3',n:'[악기] 고급 바이올린',t:3,c:'chapter2',i:'🎻',next:'C2_V4'}, {id:'C2_V4',n:'[악기] 효과음 나오는 바이올린',t:2,c:'chapter2',i:'🎵',next:'C2_V5'}, {id:'C2_V5',n:'[조명] 샹들리에',t:1,c:'chapter2',i:'✨',top:1},
+    ];
+
+    const ITEM_DB = [
+      ...SHARDS,
+      ...RAW_ITEMS.map(i => ({ id: i.id, name: i.n, tier: i.t, chapter: i.c, icon: i.i, evolvesTo: i.next, isFamilyTop: !!i.top, isShard: false }))
+    ];
+
+    const THEME_SETS = [
+      { id: 'T1', name: '운전면허장', icon: '🚦', desc: '사파리 투어 운전면허 코스! 동물 친구들도 만나요.', bgClass: 'bg-emerald-950', req: ['R15', 'R16', 'E11', 'E2', 'L10', 'U18', 'L3', 'R2', 'NEW1', 'NEW2'], diorama: <div className="absolute inset-0 flex items-center justify-center diorama-bg"><span className="absolute top-8 left-1/2 -translate-x-1/2 text-6xl opacity-80">📜</span><span className="absolute bottom-6 right-8 text-7xl z-20 animate-bounce">🚘</span><span className="absolute bottom-8 left-10 text-6xl z-20">🚦</span><span className="absolute top-1/2 left-1/4 text-5xl z-10">🪧</span><span className="absolute bottom-12 right-1/3 text-5xl z-10">🐅</span><span className="absolute bottom-4 left-1/4 text-4xl z-10">🛞</span><span className="absolute bottom-0 left-0 w-full h-12 bg-gray-600 border-t-4 border-dashed border-yellow-500/80 shadow-inner z-0"></span></div> },
+      { id: 'T2', name: '코덱스의 비밀 성소', icon: '🪄', desc: '에너지가 맴도는 코덱스의 방.', bgClass: 'bg-indigo-950', req: ['L7', 'L8', 'E3', 'R4', 'R7', 'R11', 'E9', 'NEW3', 'NEW4'], diorama: <div className="absolute inset-0 flex items-center justify-center diorama-bg"><span className="absolute top-6 left-1/2 -translate-x-1/2 text-7xl opacity-80 animate-[pulse-slow_4s_infinite]">🌌</span><span className="absolute bottom-8 right-12 text-6xl">🛌</span><span className="absolute bottom-12 left-12 text-5xl">🚪</span><span className="absolute top-1/4 right-1/4 text-5xl z-10 animate-bounce">💺</span><span className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-6xl z-10 hover:rotate-12 cursor-pointer">🪄</span><span className="absolute bottom-0 left-0 w-full h-12 bg-indigo-900/90 border-t-2 border-indigo-500/50"></span></div> },
+      { id: 'T3', name: '하모니아 콩쿠르', icon: '🎭', desc: '아름다운 선율이 흐르는 콩쿠르 무대.', bgClass: 'bg-rose-950', req: ['R20', 'R21', 'R9', 'E6', 'L6', 'E8', 'NEW5', 'NEW6', 'C2_M1', 'C2_M2', 'C2_V2', 'C2_V5'], diorama: <div className="absolute inset-0 flex items-center justify-center diorama-bg"><span className="absolute top-0 left-0 w-full h-12 bg-rose-900/80 flex justify-around items-center px-8 shadow-[0_10px_30px_rgba(225,29,72,0.3)]"><span className="text-3xl text-yellow-200 animate-pulse">💡</span><span className="text-4xl animate-pulse z-20">✨</span><span className="text-3xl text-yellow-200 animate-pulse">💡</span></span><span className="absolute top-16 left-1/2 -translate-x-1/2 text-7xl opacity-50">🎭</span><span className="absolute bottom-10 left-12 text-6xl z-10">🏆</span><span className="absolute bottom-8 right-1/3 text-6xl z-10">🎹</span><span className="absolute bottom-12 left-1/3 text-5xl z-20 animate-bounce">🎻</span><span className="absolute bottom-6 right-8 text-4xl z-20">📻</span><span className="absolute bottom-0 left-0 w-full h-10 bg-[#5c4033] border-t-2 border-[#3e2723]"></span></div> },
+      { id: 'T4', name: '도로랜드 길거리', icon: '🎠', desc: '바쁘게 돌아가는 일상과 빛나는 회전목마.', bgClass: 'bg-slate-900', req: ['R22', 'E10', 'L9', 'N17', 'N11', 'N12', 'NEW7', 'NEW8'], diorama: <div className="absolute inset-0 flex items-center justify-center diorama-bg"><span className="absolute top-8 left-1/2 -translate-x-1/2 text-7xl opacity-60">🏞️</span><span className="absolute bottom-8 right-12 text-7xl z-10">🎠</span><span className="absolute top-1/4 left-10 text-5xl animate-[floatUp_3s_infinite_alternate]">🎈</span><span className="absolute bottom-6 left-16 text-5xl z-20 animate-[pulse-slow_2s_infinite]">🚨</span><span className="absolute bottom-6 left-1/3 text-4xl z-10">🛢️</span><span className="absolute bottom-0 left-0 w-full h-12 bg-gray-800 border-t-4 border-solid border-gray-600"></span></div> },
+      { id: 'T5', name: '자일로 사무실', icon: '🕰️', desc: '늦은 밤 타자 소리가 끊이지 않는 낡은 사무실.', bgClass: 'bg-stone-900', req: ['N19', 'N20', 'U4', 'U9', 'U5', 'U10', 'N18', 'NEW9', 'NEW10'], diorama: <div className="absolute inset-0 flex items-center justify-center diorama-bg"><span className="absolute top-10 left-12 text-6xl opacity-80">📜</span><span className="absolute top-12 right-12 text-6xl z-10">📚</span><span className="absolute bottom-8 left-8 text-7xl z-10">🛏️</span><span className="absolute bottom-10 left-1/4 text-5xl z-10">📁</span><span className="absolute bottom-10 right-1/3 text-5xl z-20">💻</span><span className="absolute bottom-6 right-16 text-4xl z-20">👓</span><span className="absolute bottom-0 left-0 w-full h-12 bg-amber-950/90 border-t border-stone-700"></span></div> },
+      { id: 'T6', name: '비밀의 동굴', icon: '🪨', desc: '깊고 어두운 사파리 숲 속의 동굴.', bgClass: 'bg-zinc-950', req: ['N21', 'N22', 'N24', 'N25', 'N26', 'U15', 'NEW11', 'NEW12'], diorama: <div className="absolute inset-0 flex items-center justify-center diorama-bg"><span className="absolute top-8 left-1/2 -translate-x-1/2 text-7xl opacity-50">🪨</span><span className="absolute bottom-8 right-8 text-6xl z-10">🌳</span><span className="absolute bottom-6 left-12 text-5xl z-20">🌿</span><span className="absolute bottom-8 left-24 text-7xl">🪨</span><span className="absolute bottom-4 right-1/3 text-5xl z-10 drop-shadow-[0_0_10px_rgba(255,255,255,0.8)]">💎</span><span className="absolute top-12 left-12 text-4xl z-10 hover:scale-110 cursor-pointer">🗺️</span><span className="absolute bottom-0 left-0 w-full h-10 bg-stone-800/90 border-t-2 border-stone-600"></span></div> },
+      { id: 'T7', name: '평화로운 숲', icon: '🌲', desc: '푸른 나무와 귀여운 동물들이 어우러진 숲.', bgClass: 'bg-emerald-900', req: ['R18', 'R19', 'N26', 'N25', 'L3', 'R2', 'NEW13', 'NEW14'], diorama: <div className="absolute inset-0 flex items-center justify-center diorama-bg"><span className="absolute top-4 left-6 text-7xl opacity-50">🌲</span><span className="absolute top-8 right-10 text-8xl opacity-60">🌳</span><span className="absolute bottom-10 right-16 text-6xl z-10 animate-[bounce_2s_infinite]">🐅</span><span className="absolute bottom-12 left-16 text-5xl z-10">🧸</span><span className="absolute bottom-6 left-1/3 text-5xl z-20">🪵</span><span className="absolute bottom-4 right-1/4 text-5xl z-20">🌿</span><span className="absolute bottom-0 left-0 w-full h-12 bg-green-950/80 border-t-2 border-green-800"></span></div> }
+    ];
+
+    function App() {
+      const [credits, setCredits] = useState(2000); 
+      const [inventory, setInventory] = useState({}); 
+      const [activeChapter, setActiveChapter] = useState('테마 도감'); 
+      const [toasts, setToasts] = useState([]);
+      const [gachaModal, setGachaModal] = useState(null); 
+      const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+      const [mergeState, setMergeState] = useState({ active: false, type: null, item: null, step: 'idle' }); 
+      const [isCraftingOpen, setIsCraftingOpen] = useState(false);
+      const [craftGrid, setCraftGrid] = useState(Array(4).fill(null));
+      const [selectedTheme, setSelectedTheme] = useState(null);
+      const [openingBox, setOpeningBox] = useState(null);
+
+      const showToast = (msg) => {
+        const id = Date.now();
+        setToasts(prev => [...prev, { id, msg }]);
+        setTimeout(() => setToasts(prev => prev.filter(t => t.id !== id)), 3000);
+      };
+
+      const doAttendance = () => { setCredits(prev => prev + 5); showToast("출석체크 완료! 크레딧 +5 획득"); };
+      const doHomework = () => { setCredits(prev => prev + 10); showToast("숙제 완료! 크레딧 +10 획득"); };
+
+      const gainItem = (id) => {
+        setInventory(prev => {
+          const current = prev[id] || { count: 0, plus: 0 };
+          return { ...prev, [id]: { ...current, count: current.count + 1 } };
+        });
+      };
+
+      const buyShard = (shard) => {
+        if (credits >= shard.price) {
+          setCredits(prev => prev - shard.price);
+          gainItem(shard.id);
+          showToast(`${shard.name} 구매 완료!`);
+        } else showToast("크레딧이 부족합니다.");
+      };
+
+      const sellItems = (e, id, price, itemName) => {
+        e.stopPropagation();
+        setInventory(prev => {
+          if (!prev[id] || prev[id].count < 3) return prev;
+          return { ...prev, [id]: { ...prev[id], count: prev[id].count - 3 } };
+        });
+        const totalReward = price * 3;
+        setCredits(prev => prev + totalReward);
+        showToast(`[${itemName}] 3장을 분해하여 +${totalReward} 크레딧 획득!`);
+      };
+
+      const openBox = (type) => {
+        let targetTier = 5;
+        let probText = '';
+        const rand = Math.random();
+        const isShardDrop = Math.random() < 0.2; 
+
+        if (type === 'codex') {
+          if (credits < 500) return showToast("크레딧이 부족합니다! (500개 필요)");
+          setCredits(prev => prev - 500);
+          if (rand < 0.6) { targetTier = 3; probText = '60%'; }
+          else if (rand < 0.9) { targetTier = 2; probText = '30%'; }
+          else { targetTier = 1; probText = '10%'; }
+        } else if (type === 'doroland') {
+          if (credits < 50) return showToast("크레딧이 부족합니다! (50개 필요)");
+          setCredits(prev => prev - 50);
+          if (rand < 0.6) { targetTier = 5; probText = '60%'; }
+          else if (rand < 0.9) { targetTier = 4; probText = '30%'; }
+          else { targetTier = 3; probText = '10%'; }
+        }
+        
+        let pool = ITEM_DB.filter(i => i.tier === targetTier && (isShardDrop ? i.isShard : !i.isShard && i.chapter !== '조각'));
+        if (pool.length === 0) pool = ITEM_DB.filter(i => i.tier === targetTier && !i.isShard); 
+        
+        const pulledItem = pool[Math.floor(Math.random() * pool.length)];
+        
+        setOpeningBox({ type, item: pulledItem, prob: probText, phase: 'shake' });
+        setTimeout(() => setOpeningBox(prev => prev ? { ...prev, phase: 'rarity' } : null), 1500);
+      };
+
+      const handleOpenClick = () => {
+        setOpeningBox(prev => ({ ...prev, phase: 'flash' }));
+        setTimeout(() => {
+          const item = openingBox.item;
+          gainItem(item.id);
+          setOpeningBox(null);
+          setGachaModal(item);
+        }, 400);
+      };
+
+      const openMergeLab = (item, type) => { setMergeState({ active: true, type, item, step: 'idle' }); };
+      const executeMerge = () => {
+        setMergeState(prev => ({ ...prev, step: 'animating' }));
+        setTimeout(() => {
+          const { item, type } = mergeState;
+          if (type === 'limitBreak') {
+            setInventory(prev => ({ ...prev, [item.id]: { count: prev[item.id].count - 2, plus: prev[item.id].plus + 1 } }));
+            setCredits(prev => prev + 50);
+            setMergeState(prev => ({ ...prev, step: 'result' }));
+            showToast(`한계 돌파 성공! 크레딧 +50 보너스 지급`);
+          }
+        }, 2000); 
+      };
+      const closeMergeLab = () => setMergeState({ active: false, type: null, item: null, step: 'idle' });
+
+      const getAvailableCount = (itemId) => (inventory[itemId]?.count || 0) - craftGrid.filter(id => id === itemId).length;
+      const handleGridClick = (index) => {
+        if (!craftGrid[index]) return;
+        const newGrid = [...craftGrid];
+        newGrid[index] = null;
+        setCraftGrid(newGrid);
+      };
+      const handleInventoryItemClick = (itemId) => {
+        if (getAvailableCount(itemId) <= 0) return showToast("사용 가능한 수량이 부족합니다.");
+        const emptyIdx = craftGrid.findIndex(val => val === null);
+        if (emptyIdx !== -1) {
+          const newGrid = [...craftGrid];
+          newGrid[emptyIdx] = itemId;
+          setCraftGrid(newGrid);
+        } else showToast("작업대 슬롯이 꽉 찼습니다.");
+      };
+      
+      const craftResult = useMemo(() => {
+        const items = craftGrid.filter(Boolean).map(id => ITEM_DB.find(i => i.id === id));
+        if (items.length !== 4) return null;
+        const bases = items.filter(i => !i.isShard);
+        const shards = items.filter(i => i.isShard);
+        if (bases.length === 1 && shards.length === 3) {
+          const baseCard = bases[0];
+          if (baseCard.evolvesTo) {
+            const targetCard = ITEM_DB.find(i => i.id === baseCard.evolvesTo);
+            if (shards.every(s => s.tier === baseCard.tier)) return targetCard;
+          }
+        }
+        return null;
+      }, [craftGrid]);
+
+      const executeCraft = () => {
+        if (!craftResult) return;
+        const newInventory = { ...inventory };
+        craftGrid.forEach(itemId => { if (itemId) newInventory[itemId].count -= 1; });
+        setInventory(newInventory);
+        gainItem(craftResult.id);
+        setCraftGrid(Array(4).fill(null));
+        setIsCraftingOpen(false);
+        setGachaModal(craftResult);
+        showToast("합성 진화 성공!");
+      };
+      const closeCrafting = () => { setIsCraftingOpen(false); setCraftGrid(Array(4).fill(null)); };
+
+      const displayedItems = useMemo(() => {
+        return ITEM_DB.filter(item => item.chapter === activeChapter).sort((a, b) => {
+          if (a.tier !== b.tier) return a.tier - b.tier;
+          return a.id.localeCompare(b.id);
+        });
+      }, [activeChapter]);
+
+      const getThemeProgress = (theme) => {
+        const collected = theme.req.filter(id => inventory[id]?.count > 0 || inventory[id]?.plus > 0).length;
+        return { collected, total: theme.req.length, isComplete: collected === theme.req.length };
+      };
+
+      return (
+        <div className="flex w-full h-screen text-gray-100 font-sans select-none relative bg-[#030014] overflow-hidden">
+          
+          <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden">
+            <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-purple-900/40 via-[#030014] to-black"></div>
+            <div className="absolute top-0 left-[-20%] w-[140%] h-[50vh] bg-gradient-to-r from-teal-500/20 via-purple-500/20 to-pink-500/20 blur-[100px] animate-[aurora_15s_ease_infinite]" style={{backgroundSize: '200% 200%'}}></div>
+            <div className="absolute top-10 left-[10%] w-[120%] h-[40vh] bg-gradient-to-r from-blue-500/20 via-indigo-500/20 to-emerald-500/20 blur-[120px] animate-[aurora_20s_ease_infinite_reverse]" style={{backgroundSize: '200% 200%'}}></div>
+            {[...Array(80)].map((_, i) => (
+              <div key={i} className="absolute bg-white rounded-full animate-pulse" style={{ width: Math.random()*3+1+'px', height: Math.random()*3+1+'px', top: Math.random()*100+'%', left: Math.random()*100+'%', opacity: Math.random()*0.8+0.2, animationDuration: (Math.random()*3+1.5)+'s', boxShadow: Math.random()>0.8?'0 0 5px 1px white':'none' }} />
+            ))}
+            <div className="absolute top-[-10%] left-[80%] w-32 h-0.5 bg-gradient-to-r from-transparent to-white animate-[shooting_4s_linear_infinite] rotate-[-45deg] shadow-[0_0_10px_white]"></div>
+            <div className="absolute top-[10%] left-[50%] w-24 h-0.5 bg-gradient-to-r from-transparent to-white animate-[shooting_6s_linear_infinite_2s] rotate-[-45deg] shadow-[0_0_8px_white]"></div>
+            <div className="absolute bottom-0 left-0 w-full h-64 bg-gradient-to-t from-purple-950/80 to-transparent z-0"></div>
+
+            <div className="absolute bottom-5 left-10 w-48 h-40 opacity-80">
+              <div className="absolute bottom-0 w-full h-8 bg-black border-t-2 border-pink-500/50 rounded-lg shadow-[0_0_15px_rgba(236,72,153,0.3)]"></div>
+              <div className="absolute bottom-8 left-4 w-40 h-20 flex justify-between px-2">
+                <div className="w-1 h-full bg-pink-500/30"></div><div className="w-1 h-full bg-pink-500/30"></div><div className="w-1 h-full bg-pink-500/30"></div><div className="w-1 h-full bg-pink-500/30"></div>
+              </div>
+              <div className="absolute bottom-28 left-0 w-0 h-0 border-l-[96px] border-r-[96px] border-b-[60px] border-l-transparent border-r-transparent border-b-black drop-shadow-[0_-5px_15px_rgba(236,72,153,0.4)]"></div>
+              <div className="absolute top-2 left-1/2 -translate-x-1/2 text-2xl animate-pulse">🎪</div>
+            </div>
+            <div className="absolute bottom-0 left-[30%] w-[40%] h-48 opacity-60">
+              <svg viewBox="0 0 500 200" className="w-full h-full stroke-indigo-500/50 drop-shadow-[0_0_10px_rgba(99,102,241,0.5)]" fill="none" strokeWidth="4">
+                <path d="M0,200 Q100,0 250,150 T500,50" /><path d="M0,200 Q100,10 250,160 T500,60" className="opacity-50" />
+                <line x1="100" y1="100" x2="100" y2="200" strokeWidth="2" /><line x1="250" y1="150" x2="250" y2="200" strokeWidth="2" /><line x1="400" y1="100" x2="400" y2="200" strokeWidth="2" />
+              </svg>
+            </div>
+            <div className="absolute -bottom-24 -right-20 w-[450px] h-[450px] border-[12px] border-purple-800/60 rounded-full animate-[spin_30s_linear_infinite] shadow-[0_0_60px_rgba(168,85,247,0.3)] flex items-center justify-center">
+               <div className="w-1.5 h-full bg-purple-800/60 absolute"></div><div className="w-full h-1.5 bg-purple-800/60 absolute"></div>
+               <div className="w-1.5 h-full bg-purple-800/60 absolute rotate-45"></div><div className="w-full h-1.5 bg-purple-800/60 absolute rotate-45"></div>
+               {[0, 45, 90, 135, 180, 225, 270, 315].map((deg, i) => (
+                 <div key={i} className="absolute w-6 h-6 rounded-full bg-yellow-300 shadow-[0_0_20px_rgba(253,224,71,0.8)]" style={{ transform: `rotate(${deg}deg) translateY(-215px)` }}></div>
+               ))}
+               <div className="w-10 h-10 rounded-full bg-pink-500/80 absolute shadow-[0_0_30px_rgba(236,72,153,1)]"></div>
+            </div>
+            {[...Array(15)].map((_, i) => (
+              <div key={i} className="absolute rounded-full bg-white opacity-40 animate-[floatUp_5s_ease-in-out_infinite]" style={{ width: Math.random()*10+5+'px', height: Math.random()*10+5+'px', bottom: '-20px', left: Math.random()*100+'%', animationDelay: Math.random()*5+'s', animationDuration: Math.random()*5+5+'s', background: ['#fef08a', '#fbcfe8', '#a7f3d0', '#c084fc'][Math.floor(Math.random()*4)], boxShadow: '0 0 15px currentColor' }}></div>
+            ))}
+          </div>
+
+          <button onClick={() => setIsSidebarOpen(!isSidebarOpen)} className="absolute top-4 left-4 z-[60] bg-[#0b0c14] hover:bg-gray-800 p-2.5 rounded-xl border border-gray-600/50 text-white shadow-lg transition-all flex items-center justify-center">
+            <span className="text-xl font-black px-1">☰</span>
+          </button>
+
+          <div className={`h-full bg-[#0a0a14] border-r border-indigo-500/20 z-[50] flex flex-col shadow-2xl relative transition-all duration-300 ease-in-out shrink-0 ${isSidebarOpen ? 'w-80' : 'w-0'}`}>
+            <div className="p-6 pt-20 h-full overflow-y-auto custom-scrollbar w-80">
+              <h1 className="text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-600 mb-8 text-center tracking-widest drop-shadow-lg cursor-pointer" onClick={() => setActiveChapter('테마 도감')}>
+                NIGHT PARK<br/>COLLECTION
+              </h1>
+
+              <div className="bg-[#1a1c29] rounded-xl p-4 mb-6 border border-gray-700/50 shadow-inner">
+                <div className="flex justify-between items-center mb-1">
+                  <span className="text-indigo-300 font-semibold flex items-center gap-2"><span className="text-xl">💎</span> 크레딧</span>
+                  <span className="text-xl font-bold text-white">{credits}</span>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3 mb-8">
+                <button onClick={doAttendance} className="py-3 bg-[#0b5e40] hover:bg-[#094d34] border border-teal-600/50 rounded-xl font-bold shadow-lg transform active:scale-95 transition-all text-sm text-white">출석<br/><span className="text-xs font-normal opacity-80">+5 💎</span></button>
+                <button onClick={doHomework} className="py-3 bg-[#24429e] hover:bg-[#1d3580] border border-blue-600/50 rounded-xl font-bold shadow-lg transform active:scale-95 transition-all text-sm text-white">숙제<br/><span className="text-xs font-normal opacity-80">+10 💎</span></button>
+                <button onClick={() => setIsCraftingOpen(true)} className="col-span-2 py-3 bg-[#965514] hover:bg-[#7a4410] border border-amber-600/50 rounded-xl font-bold shadow-lg transform active:scale-95 transition-all text-white flex items-center justify-center gap-2">
+                  <span className="text-xl">🛠️</span> 조각 합성 작업대
+                </button>
+              </div>
+
+              <h2 className="text-lg font-bold text-gray-300 mb-3 border-b border-gray-700 pb-2">가챠 상점</h2>
+              <div className="space-y-3 mb-8">
+                <button onClick={() => openBox('codex')} className="w-full group relative overflow-hidden rounded-xl bg-gradient-to-br from-indigo-900 via-purple-800 to-blue-900 border-2 border-indigo-400 p-4 shadow-[0_0_20px_rgba(99,102,241,0.5)] hover:shadow-[0_0_30px_rgba(99,102,241,0.8)] transition-all transform hover:-translate-y-1">
+                  <div className="absolute inset-0 codex-glow opacity-60"></div>
+                  <div className="flex items-center justify-between relative z-10">
+                    <div className="text-left">
+                      <div className="font-bold text-white drop-shadow-md">코덱스의 상자</div>
+                      <div className="text-[10px] text-indigo-200 leading-tight mt-1 font-medium">레어/에픽/레전더리<br/>(+ 20% 확률 조각)</div>
+                    </div>
+                    <div className="bg-black/60 px-3 py-1 rounded-full text-blue-300 font-bold text-sm flex items-center gap-1 border border-white/10 shadow-lg">500 💎</div>
+                  </div>
+                </button>
+                <button onClick={() => openBox('doroland')} className="w-full group relative overflow-hidden rounded-xl bg-[#2a2d3d] border border-gray-600 p-4 shadow-lg hover:bg-[#34384c] transition-all transform hover:-translate-y-1">
+                  <div className="flex items-center justify-between relative z-10">
+                    <div className="text-left">
+                      <div className="font-bold text-gray-100">도로랜드 상자</div>
+                      <div className="text-[10px] text-gray-400 leading-tight mt-1">노멀/언커먼/레어<br/>(+ 20% 확률 조각)</div>
+                    </div>
+                    <div className="bg-black/40 px-3 py-1 rounded-full text-blue-300 font-bold text-sm flex items-center gap-1 border border-white/10">50 💎</div>
+                  </div>
+                </button>
+              </div>
+
+              <h2 className="text-lg font-bold text-gray-300 mb-3 border-b border-gray-700 pb-2">조각 상점</h2>
+              <div className="space-y-2">
+                {SHARDS.map(shard => (
+                   <button key={shard.id} onClick={() => buyShard(shard)} className="w-full flex items-center justify-between p-3 rounded-lg border border-gray-700 bg-[#1a1c29] hover:bg-[#232638] transition-all group active:scale-95">
+                     <div className={`text-sm font-bold ${TIERS[shard.tier].color} flex items-center gap-2 group-hover:drop-shadow-[0_0_5px_currentColor]`}>
+                       <span style={{filter: shard.filter}} className="text-xl">{shard.icon}</span> {shard.name}
+                     </div>
+                     <div className="bg-black/50 border border-gray-600 px-2 py-1 rounded text-xs font-bold text-white">{shard.price} 💎</div>
+                   </button>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          <div className={`flex-1 flex flex-col h-full z-10 p-6 pt-20 relative overflow-hidden transition-all duration-300 ${isSidebarOpen ? 'ml-0' : 'ml-0'}`}>
+            <div className="flex flex-wrap gap-2 mb-6 bg-black/40 p-2 rounded-2xl backdrop-blur-md w-fit border border-white/10 shadow-lg">
+              {CHAPTERS.map(ch => (
+                <button key={ch} onClick={() => setActiveChapter(ch)}
+                  className={`px-4 py-2 rounded-xl font-bold transition-all flex items-center gap-2 text-sm
+                    ${activeChapter === ch ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-[0_0_15px_rgba(139,92,246,0.5)]' : 'text-gray-400 hover:bg-white/10'}`}>
+                  {ch === '테마 도감' && <span>📖</span>}
+                  {ch.toUpperCase()}
+                </button>
+              ))}
+            </div>
+
+            <div className="flex-1 overflow-y-auto pr-4 pb-20 custom-scrollbar">
+              {activeChapter === '테마 도감' && (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 animate-[slideIn_0.3s_ease-out]">
+                  {THEME_SETS.map(theme => {
+                    const { collected, total, isComplete } = getThemeProgress(theme);
+                    const progressPercent = (collected / total) * 100;
+                    return (
+                      <div key={theme.id} onClick={() => setSelectedTheme(theme)} 
+                           className={`relative bg-gray-900/60 backdrop-blur-md rounded-3xl border-2 p-5 cursor-pointer transition-all hover:-translate-y-2 shadow-xl group overflow-hidden
+                           ${isComplete ? 'border-pink-500 shadow-[0_0_20px_rgba(236,72,153,0.3)]' : 'border-gray-600/50 hover:border-indigo-400'}`}>
+                        {isComplete && <div className="absolute top-4 right-4 bg-pink-500 text-white text-xs font-black px-3 py-1 rounded-full shadow-[0_0_10px_rgba(236,72,153,0.8)] z-10 rotate-12">COMPLETED!</div>}
+                        <div className={`w-full h-40 rounded-2xl mb-4 relative overflow-hidden ${theme.bgClass} flex items-center justify-center border border-white/10`}>
+                          <span className="text-8xl group-hover:scale-110 transition-transform">{theme.icon}</span>
+                        </div>
+                        <h3 className="text-xl font-bold text-white mb-1">{theme.name}</h3>
+                        <p className="text-xs text-gray-300 line-clamp-2 h-8 mb-4">{theme.desc}</p>
+                        <div className="w-full bg-gray-800 rounded-full h-3 border border-gray-600 relative overflow-hidden">
+                          <div className={`h-full transition-all duration-1000 ${isComplete ? 'bg-gradient-to-r from-pink-500 to-rose-500' : 'bg-gradient-to-r from-indigo-500 to-purple-500'}`} style={{width: `${progressPercent}%`}}></div>
+                        </div>
+                        <div className="text-right text-xs mt-1 font-bold text-gray-300">{collected} <span className="opacity-50">/ {total}</span></div>
+                      </div>
+                    )
+                  })}
+                </div>
+              )}
+
+              {activeChapter !== '테마 도감' && (
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
+                  {displayedItems.map(item => {
+                    const invData = inventory[item.id] || { count: 0, plus: 0 };
+                    const isOwned = invData.count > 0 || invData.plus > 0;
+                    const tierInfo = TIERS[item.tier];
+                    const isUpgradable = item.evolvesTo != null || item.isFamilyTop === true;
+                    const canSell = !isUpgradable && !item.isShard && invData.count >= 3;
+                    const canLimitBreak = item.isFamilyTop === true && invData.count >= 2;
+                    const hasEvolveBtn = item.evolvesTo != null && isOwned;
+
+                    return (
+                      <div key={item.id} className={`relative group rounded-2xl p-4 flex flex-col items-center justify-center text-center transition-all duration-300 border-2
+                        ${isOwned ? `${tierInfo.bg} ${tierInfo.border} ${tierInfo.shadow} backdrop-blur-md` : 'bg-gray-900/40 border-gray-700/50 opacity-60 grayscale'}
+                        ${invData.plus > 0 ? 'animate-[pulse-slow_3s_ease-in-out_infinite]' : ''}
+                      `}>
+                        {isOwned && canSell && (
+                          <button onClick={(e) => sellItems(e, item.id, tierInfo.sellPrice, item.name)} className="absolute top-2 left-2 bg-gradient-to-b from-yellow-500 to-yellow-700 hover:from-yellow-400 hover:to-yellow-600 px-2 py-1 rounded-lg text-xs font-bold border border-yellow-300 shadow-md flex items-center gap-1 transition-all z-20 hover:scale-110 active:scale-95 text-white">💰 3장분해(+{tierInfo.sellPrice * 3})</button>
+                        )}
+                        {isOwned && <div className="absolute top-2 right-2 bg-black/80 px-2.5 py-1 rounded-full text-sm font-bold border border-white/20 shadow-md">x{invData.count}</div>}
+                        {invData.plus > 0 && <div className="absolute -top-3 -right-3 bg-gradient-to-br from-pink-500 to-rose-600 text-white w-9 h-9 rounded-full flex items-center justify-center font-black text-sm shadow-[0_0_15px_rgba(244,63,94,0.8)] border-2 border-white rotate-12 z-10">+{invData.plus}</div>}
+                        
+                        <div className={`text-6xl mb-4 mt-3 drop-shadow-xl ${isOwned ? 'hover:scale-110 transition-transform cursor-pointer' : 'opacity-30'}`} style={item.isShard ? {filter: item.filter} : {}}>{item.icon}</div>
+                        <div className={`text-xs font-bold mb-1 px-3 py-1 rounded-md bg-black/60 ${tierInfo.color}`}>{tierInfo.name}</div>
+                        <div className={`text-[13px] font-bold h-10 flex items-center justify-center leading-tight ${isOwned ? 'text-white' : 'text-gray-400'}`}>{item.name.replace(/\[.*?\]\s*/, '')}</div>
+
+                        {isOwned && canLimitBreak && !item.isShard && (
+                          <button onClick={() => openMergeLab(item, 'limitBreak')} className="absolute -bottom-5 bg-gradient-to-r from-pink-500 to-rose-600 text-white text-sm font-black px-5 py-2 rounded-full shadow-[0_0_15px_rgba(244,63,94,0.9)] hover:scale-105 hover:from-pink-400 hover:to-rose-500 transition-all border border-white/20 z-20 animate-bounce">✨ 한계돌파(2장)</button>
+                        )}
+                        {hasEvolveBtn && !canLimitBreak && !item.isShard && (
+                          <button onClick={() => setIsCraftingOpen(true)} className="absolute -bottom-5 bg-gradient-to-r from-blue-500 to-indigo-600 text-white text-sm font-black px-5 py-2 rounded-full shadow-[0_0_15px_rgba(99,102,241,0.9)] hover:scale-105 hover:from-blue-400 hover:to-indigo-500 transition-all border border-white/20 z-20">작업대 진화</button>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          </div>
+
+          {openingBox && (
+            <div className="absolute inset-0 z-[110] flex flex-col items-center justify-center bg-black/90 backdrop-blur-md">
+               {openingBox.phase === 'shake' && (
+                 <div className="relative flex flex-col items-center">
+                    <div className={`absolute inset-0 blur-[100px] rounded-full w-64 h-64 -z-10 animate-pulse ${openingBox.type === 'codex' ? 'bg-indigo-500/50' : 'bg-gray-500/30'}`}></div>
+                    <div className="text-9xl animate-[shakeBox_0.3s_ease-in-out_infinite] drop-shadow-[0_0_50px_rgba(255,255,255,0.6)]">
+                      {openingBox.type === 'codex' ? '🧰' : '🎁'}
+                    </div>
+                    <div className="mt-12 text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 to-yellow-500 animate-pulse tracking-widest drop-shadow-lg">상자를 여는 중...</div>
+                 </div>
+               )}
+               {openingBox.phase === 'rarity' && (() => {
+                 const tInfo = TIERS[openingBox.item.tier];
+                 return (
+                   <div className="flex flex-col items-center animate-[slideIn_0.3s_ease-out]">
+                     <div className={`absolute inset-0 blur-[120px] rounded-full w-96 h-96 -z-10 animate-pulse ${tInfo.bg}`}></div>
+                     <h2 className={`text-6xl font-black mb-4 drop-shadow-[0_0_20px_currentColor] ${tInfo.color}`}>{tInfo.name} 등급 등장!</h2>
+                     <p className="text-2xl text-white font-bold mb-12 bg-black/50 px-6 py-2 rounded-full border border-white/20 shadow-lg">해당 등급 확률: <span className="text-pink-400">{openingBox.prob}</span></p>
+                     <button onClick={handleOpenClick} className="px-16 py-5 bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-400 hover:to-purple-500 rounded-full text-3xl font-black text-white shadow-[0_0_30px_rgba(168,85,247,0.8)] hover:scale-110 transition-transform">✨ 열기</button>
+                   </div>
+                 )
+               })()}
+               {openingBox.phase === 'flash' && <div className="absolute inset-0 bg-white z-[120] animate-[whiteFlash_0.4s_ease-out_forwards]"></div>}
+            </div>
+          )}
+
+          {isCraftingOpen && (
+            <div className="absolute inset-0 z-[80] flex items-center justify-center bg-black/90 backdrop-blur-md">
+              <div className="bg-gray-800/90 w-full max-w-5xl h-[80vh] rounded-3xl border-2 border-amber-500/50 flex flex-col shadow-[0_0_40px_rgba(245,158,11,0.2)] overflow-hidden backdrop-blur-xl">
+                <div className="bg-gray-900/80 px-8 py-5 border-b border-gray-700/50 flex justify-between items-center">
+                  <h2 className="text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-amber-400 to-orange-500 flex items-center gap-3"><span>🛠️</span> 합성 작업대 (진화)</h2>
+                  <button onClick={closeCrafting} className="text-gray-400 hover:text-white text-3xl font-bold">&times;</button>
+                </div>
+                <div className="flex flex-1 overflow-hidden">
+                  <div className="w-1/2 p-8 flex flex-col items-center border-r border-gray-700/50 relative">
+                    <div className="text-gray-400 mb-8 text-center bg-black/30 p-4 rounded-xl border border-gray-700/50 text-sm">
+                      <strong className="text-amber-400">진화 공식:</strong> 베이스 카드 1장 + <strong className="text-white">같은 등급</strong> 조각 3개<br/>
+                      (우측 인벤토리에서 클릭하여 배치)
+                    </div>
+                    <div className="flex items-center gap-8 mb-12">
+                      <div className="grid grid-cols-2 gap-3 bg-gray-900/50 p-4 rounded-2xl border-4 border-gray-700 shadow-inner">
+                        {craftGrid.map((itemId, idx) => {
+                          const item = itemId ? ITEM_DB.find(i => i.id === itemId) : null;
+                          return (
+                            <div key={idx} onClick={() => handleGridClick(idx)} className="w-24 h-24 bg-gray-800 border-2 border-gray-600 rounded-xl flex flex-col items-center justify-center cursor-pointer hover:border-amber-400 hover:bg-gray-700 transition-all">
+                              {item && <span className="text-5xl drop-shadow-md" style={item.isShard ? {filter: item.filter} : {}}>{item.icon}</span>}
+                              {item && <span className="text-[11px] text-gray-400 truncate w-full text-center px-1 mt-2">{item.name.replace(/\[.*?\]\s*/, '')}</span>}
+                            </div>
+                          );
+                        })}
+                      </div>
+                      <div className="text-5xl text-gray-600">➔</div>
+                      <div className="w-36 h-36 bg-gray-900/50 border-4 border-dashed border-gray-600 rounded-2xl flex flex-col items-center justify-center relative shadow-lg">
+                        {craftResult ? (
+                          <React.Fragment>
+                            <div className="absolute inset-0 bg-amber-500/20 animate-pulse rounded-xl"></div>
+                            <span className="text-7xl drop-shadow-[0_0_15px_rgba(245,158,11,0.8)] relative z-10" style={craftResult.isShard ? {filter: craftResult.filter} : {}}>{craftResult.icon}</span>
+                            <span className={`text-sm font-bold mt-2 px-2 py-0.5 rounded bg-black/60 relative z-10 ${TIERS[craftResult.tier].color}`}>{TIERS[craftResult.tier].name}</span>
+                          </React.Fragment>
+                        ) : (<span className="text-6xl text-gray-700">?</span>)}
+                      </div>
+                    </div>
+                    <button onClick={executeCraft} disabled={!craftResult} className={`w-64 py-4 rounded-full text-xl font-black transition-all shadow-lg ${craftResult ? 'bg-gradient-to-r from-amber-500 to-orange-600 text-white hover:scale-105 hover:shadow-[0_0_20px_rgba(245,158,11,0.6)] cursor-pointer' : 'bg-gray-700/50 text-gray-500 cursor-not-allowed'}`}>진화시키기</button>
+                  </div>
+                  <div className="w-1/2 p-6 bg-black/20 overflow-y-auto custom-scrollbar flex flex-col">
+                    <h3 className="text-xl font-bold text-gray-300 mb-4 border-b border-gray-700/50 pb-2">사용 가능한 재료</h3>
+                    <div className="grid grid-cols-3 gap-4 pb-10">
+                      {ITEM_DB.filter(item => getAvailableCount(item.id) > 0 && (!item.isFamilyTop || item.isShard)).map(item => {
+                        const availCount = getAvailableCount(item.id);
+                        return (
+                          <div key={item.id} onClick={() => handleInventoryItemClick(item.id)} className={`relative flex flex-col items-center p-3 rounded-xl border-2 cursor-pointer transition-transform hover:scale-105 ${TIERS[item.tier].bg} ${TIERS[item.tier].border}`}>
+                            <div className="absolute -top-2 -right-2 bg-black px-2 py-0.5 rounded-full text-xs font-bold border border-white/20">{availCount}</div>
+                            <div className="text-4xl mb-2" style={item.isShard ? {filter: item.filter} : {}}>{item.icon}</div>
+                            <div className="text-[10px] text-center font-bold text-gray-300 leading-tight h-8 flex items-center">{item.name.replace(/\[.*?\]\s*/, '')}</div>
+                          </div>
+                        );
+                      })}
+                      {ITEM_DB.filter(item => getAvailableCount(item.id) > 0 && (!item.isFamilyTop || item.isShard)).length === 0 && (<div className="col-span-3 text-center text-gray-500 mt-10">사용 가능한 재료 카드가 없습니다.</div>)}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {gachaModal && (
+            <div className="absolute inset-0 z-[120] flex items-center justify-center bg-black/50 backdrop-blur-sm" onClick={() => setGachaModal(null)}>
+              <div className="bg-gray-900 border-2 rounded-3xl p-10 flex flex-col items-center animate-[bounce_0.5s_ease-out] relative shadow-[0_0_80px_rgba(0,0,0,0.8)]" style={{ borderColor: TIERS[gachaModal.tier].color.replace('text-', '') }} onClick={e => e.stopPropagation()}>
+                <h2 className="text-xl font-bold text-gray-400 mb-6 tracking-widest">새로운 아이템 획득!</h2>
+                <div className={`text-8xl mb-6 drop-shadow-2xl ${TIERS[gachaModal.tier].color} animate-pulse`} style={gachaModal.isShard ? {filter: gachaModal.filter} : {}}>{gachaModal.icon}</div>
+                <div className={`text-lg font-black px-4 py-1 rounded-md bg-black/50 mb-3 ${TIERS[gachaModal.tier].color}`}>{TIERS[gachaModal.tier].name}</div>
+                <h3 className="text-2xl font-bold text-white mb-8">{gachaModal.name}</h3>
+                <button onClick={() => setGachaModal(null)} className="px-8 py-3 bg-white/10 hover:bg-white/20 rounded-xl font-bold transition-all border border-white/20">확인</button>
+              </div>
+            </div>
+          )}
+
+          {mergeState.active && mergeState.item && (() => {
+            const { item, type, step } = mergeState;
+            const targetCount = type === 'limitBreak' ? 2 : 3;
+            const invData = inventory[item.id];
+            return (
+              <div className="absolute inset-0 z-[100] flex items-center justify-center bg-black/90 backdrop-blur-lg">
+                <div className="absolute inset-0 pointer-events-none flex justify-center items-center overflow-hidden"><div className={`w-[800px] h-[800px] rounded-full blur-[150px] opacity-30 bg-pink-600 animate-pulse`}></div></div>
+                <div className="relative z-10 flex flex-col items-center w-full max-w-4xl">
+                  <h2 className="text-4xl font-black mb-12 tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-pink-400 to-rose-600 drop-shadow-2xl">한계 돌파 연구소</h2>
+                  {step === 'idle' && (
+                    <React.Fragment>
+                      <div className="flex gap-8 mb-16">
+                        {[...Array(targetCount)].map((_, i) => (
+                          <div key={i} className={`w-32 h-40 rounded-2xl flex flex-col items-center justify-center ${TIERS[item.tier].bg} ${TIERS[item.tier].border} border-2 shadow-2xl`}><div className="text-6xl drop-shadow-lg">{item.icon}</div></div>
+                        ))}
+                      </div>
+                      <button onClick={executeMerge} className="px-12 py-4 rounded-full text-2xl font-black text-white shadow-[0_0_30px_rgba(255,255,255,0.3)] hover:scale-105 transition-all bg-gradient-to-r from-pink-500 to-rose-600 hover:from-pink-400 hover:to-rose-500">강화 시작 (+1)</button>
+                      <button onClick={closeMergeLab} className="mt-6 text-gray-400 hover:text-white underline">취소</button>
+                    </React.Fragment>
+                  )}
+                  {step === 'animating' && (
+                    <div className="flex flex-col items-center justify-center h-64">
+                      <div className="relative w-40 h-40 flex items-center justify-center">
+                        <div className="absolute w-full h-full rounded-full border-4 border-dashed animate-[spin_1s_linear_infinite] border-pink-500"></div>
+                        <div className="absolute w-20 h-20 rounded-full animate-ping bg-pink-500"></div>
+                        <div className="text-6xl z-10 animate-pulse">{item.icon}</div>
+                      </div>
+                      <div className="mt-8 text-2xl font-bold animate-pulse text-white">한계를 돌파하는 중...</div>
+                    </div>
+                  )}
+                  {step === 'result' && (
+                    <div className="flex flex-col items-center animate-[bounce_0.5s_ease-out]">
+                      <div className="relative">
+                         <div className="absolute inset-0 z-0 flex justify-center items-center pointer-events-none">
+                           {[...Array(8)].map((_, i) => (<div key={i} className="absolute text-4xl animate-[floatUp_2s_ease-out_forwards]" style={{ left: `${(Math.random() - 0.5) * 200}px`, top: `${(Math.random() - 0.5) * 200}px`, animationDelay: `${Math.random() * 0.5}s` }}>💖</div>))}
+                         </div>
+                        <div className={`relative z-10 w-48 h-64 rounded-3xl flex flex-col items-center justify-center border-4 shadow-[0_0_50px_rgba(255,255,255,0.4)] ${TIERS[item.tier].bg} ${TIERS[item.tier].border}`}>
+                           <div className="absolute -top-5 -left-5 bg-gradient-to-br from-pink-500 to-rose-600 text-white w-14 h-14 rounded-full flex items-center justify-center font-black text-xl shadow-lg border-4 border-white rotate-12">+{invData.plus + 1}</div>
+                          <div className="text-8xl mb-4 drop-shadow-2xl">{item.icon}</div>
+                          <div className={`text-sm font-bold px-3 py-1 rounded bg-black/50 mb-2 ${TIERS[item.tier].color}`}>{TIERS[item.tier].name}</div>
+                        </div>
+                      </div>
+                      <h3 className="text-3xl font-bold text-white mt-8 mb-2">{item.name} (+{invData.plus + 1})</h3>
+                      <p className="text-yellow-400 font-bold mb-6 text-xl">크레딧 보너스 +50 💎</p>
+                      <button onClick={closeMergeLab} className="mt-6 px-10 py-3 bg-white/10 hover:bg-white/20 rounded-xl font-bold transition-all border border-white/30 text-xl">확인</button>
+                    </div>
+                  )}
+                </div>
+              </div>
+            );
+          })()}
+
+          {selectedTheme && (() => {
+            const { collected, total, isComplete } = getThemeProgress(selectedTheme);
+            return (
+              <div className="absolute inset-0 z-[70] flex items-center justify-center bg-black/90 backdrop-blur-md" onClick={() => setSelectedTheme(null)}>
+                <div className="bg-gray-800/90 w-full max-w-4xl h-[85vh] rounded-3xl border-2 border-indigo-500/50 flex flex-col shadow-[0_0_40px_rgba(99,102,241,0.3)] overflow-hidden animate-[slideIn_0.3s_ease-out] backdrop-blur-xl" onClick={e => e.stopPropagation()}>
+                  <div className="bg-gray-900/80 px-8 py-5 flex justify-between items-center z-20 border-b border-gray-700/50">
+                    <h2 className="text-2xl font-black text-white flex items-center gap-3">
+                      <span>{selectedTheme.icon}</span> {selectedTheme.name}
+                      {isComplete && <span className="text-xs bg-pink-500 text-white px-3 py-1 rounded-full ml-4 shadow-[0_0_10px_rgba(236,72,153,0.8)]">ALL COLLECTED</span>}
+                    </h2>
+                    <button onClick={() => setSelectedTheme(null)} className="text-gray-400 hover:text-white text-3xl font-bold">&times;</button>
+                  </div>
+                  <div className={`relative w-full h-72 shrink-0 ${selectedTheme.bgClass} shadow-inner overflow-hidden border-b-4 border-black/50`}>
+                     {selectedTheme.diorama}
+                     <div className="absolute top-4 left-4 bg-black/60 backdrop-blur-sm px-4 py-2 rounded-xl border border-white/20 z-30">
+                       <p className="text-sm font-bold text-white mb-1">진행도: <span className={isComplete ? 'text-pink-400' : 'text-indigo-400'}>{collected} / {total}</span></p>
+                       <p className="text-xs text-gray-300">{selectedTheme.desc}</p>
+                     </div>
+                  </div>
+                  <div className="flex-1 p-8 bg-black/20 overflow-y-auto custom-scrollbar">
+                    <h3 className="text-lg font-bold text-gray-300 mb-6 border-b border-gray-700/50 pb-2">테마 완성에 필요한 아이템</h3>
+                    <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6">
+                      {selectedTheme.req.map(reqId => {
+                        const item = ITEM_DB.find(i => i.id === reqId);
+                        if (!item) return null;
+                        const invData = inventory[reqId] || { count: 0, plus: 0 };
+                        const isOwned = invData.count > 0 || invData.plus > 0;
+                        const tierInfo = TIERS[item.tier];
+                        return (
+                          <div key={item.id} className={`relative rounded-2xl p-3 flex flex-col items-center justify-center text-center transition-all border-2
+                            ${isOwned ? `${tierInfo.bg} ${tierInfo.border} shadow-lg` : 'bg-gray-900/30 border-gray-700/50 opacity-40 grayscale'}
+                          `}>
+                            {isOwned && <div className="absolute -top-3 -right-3 bg-emerald-500 text-white w-7 h-7 rounded-full flex items-center justify-center font-black text-sm border-2 border-white z-10 shadow-md">✓</div>}
+                            <div className="text-5xl mb-2 mt-2" style={item.isShard ? {filter: item.filter} : {}}>{item.icon}</div>
+                            <div className={`text-[10px] font-bold mb-1 px-2 py-0.5 rounded-sm bg-black/60 ${tierInfo.color}`}>{tierInfo.name}</div>
+                            <div className={`text-xs font-bold leading-tight h-8 flex items-center justify-center ${isOwned ? 'text-white' : 'text-gray-500'}`}>{item.name.replace(/\[.*?\]\s*/, '')}</div>
+                          </div>
+                        )
+                      })}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )
+          })()}
+
+          <div className="absolute bottom-6 right-6 flex flex-col gap-2 z-[130] pointer-events-none">
+            {toasts.map(t => (
+              <div key={t.id} className="bg-gray-800/90 text-white px-6 py-3 rounded-xl border border-gray-600 shadow-2xl font-medium" style={{ animation: 'slideIn 0.3s ease-out' }}>{t.msg}</div>
+            ))}
+          </div>
+        </div>
+      );
+    }
+
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(<App />);
+  </script>
+</body>
+</html>
