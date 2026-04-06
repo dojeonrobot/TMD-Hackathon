@@ -1,0 +1,673 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>강남 에코-링크 서비스 제안서</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Noto Sans KR', 'sans-serif'],
+                    },
+                    colors: {
+                        brand: {
+                            50: '#f0fdf4',
+                            100: '#dcfce7',
+                            400: '#4ade80',
+                            500: '#22c55e',
+                            600: '#16a34a',
+                            700: '#15803d',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            background-color: #f3f4f6;
+        }
+        
+        /* 프레젠테이션 컨테이너 */
+        #presentation-container {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: #f9fafb;
+        }
+
+        /* 슬라이드 공통 스타일 */
+        .slide {
+            position: absolute;
+            width: 100%;
+            max-width: 1200px;
+            height: 100%;
+            max-height: 800px;
+            padding: 40px;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.5s ease-in-out, transform 0.5s ease-in-out;
+            transform: scale(0.95) translateY(20px);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        /* 활성화된 슬라이드 */
+        .slide.active {
+            opacity: 1;
+            visibility: visible;
+            transform: scale(1) translateY(0);
+            z-index: 10;
+        }
+
+        /* 네비게이션 버튼 */
+        .nav-btn {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(255, 255, 255, 0.9);
+            border: 1px solid #e5e7eb;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            z-index: 50;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            color: #16a34a;
+            transition: all 0.2s;
+        }
+        .nav-btn:hover {
+            background: #22c55e;
+            color: white;
+            transform: translateY(-50%) scale(1.1);
+        }
+        #prev-btn { left: 20px; }
+        #next-btn { right: 20px; }
+
+        /* 스마트폰 목업 공통 스타일 */
+        .phone-mockup {
+            width: 280px;
+            height: 580px;
+            background-color: #fff;
+            border-radius: 40px;
+            border: 10px solid #1f2937;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            flex-shrink: 0;
+        }
+        .phone-notch {
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 120px;
+            height: 24px;
+            background-color: #1f2937;
+            border-bottom-left-radius: 16px;
+            border-bottom-right-radius: 16px;
+            z-index: 50;
+        }
+        /* 목업 스크롤바 숨기기 */
+        .mockup-content::-webkit-scrollbar { display: none; }
+        .mockup-content { -ms-overflow-style: none; scrollbar-width: none; }
+
+        /* 프로그레스 바 */
+        #progress-bar-container {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 6px;
+            background-color: #e5e7eb;
+            z-index: 50;
+        }
+        #progress-bar {
+            height: 100%;
+            background-color: #22c55e;
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        /* 슬라이드 인디케이터 */
+        #slide-indicator {
+            position: absolute;
+            bottom: 20px;
+            right: 30px;
+            font-size: 14px;
+            color: #6b7280;
+            z-index: 50;
+            font-weight: 500;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="presentation-container">
+        
+        <!-- 슬라이드 1: 표지 -->
+        <div class="slide active text-center" id="slide-1">
+            <div class="w-32 h-32 bg-brand-100 rounded-full flex items-center justify-center mx-auto mb-8 shadow-inner">
+                <i data-lucide="leaf" class="w-16 h-16 text-brand-600"></i>
+            </div>
+            <h2 class="text-3xl font-bold text-brand-600 mb-2">지속가능한 도시를 위한 실천 플랫폼</h2>
+            <h1 class="text-6xl font-black text-gray-900 mb-6 tracking-tight">강남 에코-링크 리워드 🌱</h1>
+            <p class="text-xl text-gray-500 mb-12">"작은 행동이 모여 강남구의 데이터로!"</p>
+            
+            <div class="inline-flex items-center gap-2 bg-white px-6 py-3 rounded-full shadow-sm border border-gray-200 text-gray-600 font-medium">
+                키보드 방향키 <i data-lucide="arrow-left" class="w-4 h-4"></i> <i data-lucide="arrow-right" class="w-4 h-4"></i> 로 넘겨보세요
+            </div>
+        </div>
+
+        <!-- 슬라이드 2: 문제 정의 및 기획 의도 -->
+        <div class="slide" id="slide-2">
+            <div class="bg-white rounded-3xl shadow-xl p-12 h-full border border-gray-100 flex flex-col">
+                <div class="flex items-center gap-3 mb-8">
+                    <div class="bg-brand-500 p-3 rounded-xl text-white">
+                        <i data-lucide="lightbulb" class="w-8 h-8"></i>
+                    </div>
+                    <h2 class="text-4xl font-bold text-gray-800">기획 의도 및 비전</h2>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8 flex-1">
+                    <div class="bg-gray-50 rounded-2xl p-8 flex flex-col justify-center">
+                        <h3 class="text-2xl font-bold text-gray-800 mb-4">현재의 과제</h3>
+                        <ul class="space-y-4 text-gray-600 text-lg">
+                            <li class="flex items-start gap-3">
+                                <i data-lucide="alert-circle" class="w-6 h-6 text-orange-500 shrink-0 mt-1"></i>
+                                <span>시민들의 개별적인 친환경 실천이 구 전체의 성과로 측정되지 않음</span>
+                            </li>
+                            <li class="flex items-start gap-3">
+                                <i data-lucide="alert-circle" class="w-6 h-6 text-orange-500 shrink-0 mt-1"></i>
+                                <span>지속적인 환경 보호 실천을 이끌어낼 즉각적이고 매력적인 보상 부족</span>
+                            </li>
+                        </ul>
+                    </div>
+                    
+                    <div class="bg-brand-50 rounded-2xl p-8 flex flex-col justify-center border border-brand-100 relative overflow-hidden">
+                        <i data-lucide="network" class="w-48 h-48 absolute -bottom-10 -right-10 text-brand-100 opacity-50"></i>
+                        <h3 class="text-2xl font-bold text-brand-700 mb-4 relative z-10">에코-링크의 솔루션</h3>
+                        <p class="text-xl font-medium text-gray-800 mb-6 relative z-10 leading-relaxed">
+                            "구민들의 생활 속 작은 행동을<br>
+                            <span class="text-brand-600 font-bold border-b-4 border-brand-300">강남구 단위의 통합 탄소 데이터</span>로 연결"
+                        </p>
+                        <div class="bg-white rounded-xl p-4 shadow-sm relative z-10 flex items-center justify-between">
+                            <div class="text-center">
+                                <p class="text-sm text-gray-500">개인 실천</p>
+                                <p class="font-bold text-brand-600">+ 리워드</p>
+                            </div>
+                            <i data-lucide="arrow-right" class="w-5 h-5 text-gray-400"></i>
+                            <div class="text-center">
+                                <p class="text-sm text-gray-500">통합 데이터</p>
+                                <p class="font-bold text-gray-800">45,210 kg 절감</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 슬라이드 3: 핵심 기능 1 - 챌린지 (앱 화면 추가) -->
+        <div class="slide" id="slide-3">
+            <div class="bg-white rounded-3xl shadow-xl p-10 h-full border border-gray-100 flex flex-col">
+                <div class="flex items-center gap-3 mb-6">
+                    <div class="bg-brand-500 p-3 rounded-xl text-white">
+                        <i data-lucide="check-square" class="w-8 h-8"></i>
+                    </div>
+                    <h2 class="text-3xl font-bold text-gray-800">주요 기능 1. 실천하고 리워드 받기</h2>
+                </div>
+                
+                <div class="flex-1 grid grid-cols-1 lg:grid-cols-2 gap-10 items-center">
+                    <!-- 텍스트 설명 -->
+                    <div>
+                        <p class="text-lg text-gray-600 mb-8 leading-relaxed">
+                            앱에서 제공하는 <strong>다양한 맞춤형 환경 챌린지</strong>를 완수하면, 탄소 저감량에 비례하여 즉각적으로 에코 포인트를 지급합니다.
+                        </p>
+                        
+                        <ul class="space-y-6">
+                            <li class="bg-gray-50 p-5 rounded-2xl flex gap-4 items-start border border-gray-200">
+                                <div class="bg-brand-100 p-3 rounded-full text-brand-600 shrink-0">
+                                    <i data-lucide="coffee" class="w-6 h-6"></i>
+                                </div>
+                                <div>
+                                    <h4 class="font-bold text-gray-800 mb-1">상시 실천: 다회용컵 사용</h4>
+                                    <p class="text-gray-500 text-sm mb-2">지정 카페에서 텀블러 사용 인증 시 즉시 적립</p>
+                                    <span class="text-brand-600 font-bold text-sm bg-brand-50 px-2 py-1 rounded">100P 적립 / -0.1kg</span>
+                                </div>
+                            </li>
+                            <li class="bg-gray-50 p-5 rounded-2xl flex gap-4 items-start border border-gray-200">
+                                <div class="bg-blue-100 p-3 rounded-full text-blue-600 shrink-0">
+                                    <i data-lucide="qr-code" class="w-6 h-6"></i>
+                                </div>
+                                <div>
+                                    <h4 class="font-bold text-gray-800 mb-1">이벤트 연계: 행사장 QR 분리배출</h4>
+                                    <p class="text-gray-500 text-sm mb-2">코엑스 등 주요 행사장 쓰레기 배출구 스캔 인증</p>
+                                    <span class="text-blue-600 font-bold text-sm bg-blue-50 px-2 py-1 rounded">150P 적립 / -0.2kg</span>
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+                    
+                    <!-- 스마트폰 목업 UI -->
+                    <div class="flex justify-center">
+                        <div class="phone-mockup bg-gray-50">
+                            <div class="phone-notch"></div>
+                            
+                            <!-- 목업 화면 내용 -->
+                            <div class="mockup-content h-full w-full overflow-y-auto pb-20 pt-10">
+                                <!-- 상단 헤더 요약 -->
+                                <div class="px-5 mb-4">
+                                    <div class="bg-brand-500 rounded-2xl p-4 text-white shadow-md relative overflow-hidden">
+                                        <div class="absolute -right-4 -top-4 opacity-20"><i data-lucide="leaf" class="w-16 h-16"></i></div>
+                                        <p class="text-brand-100 text-[10px] font-medium mb-1">나의 에코 리워드</p>
+                                        <div class="flex items-baseline gap-1">
+                                            <h2 class="text-2xl font-bold">1,250</h2><span class="text-brand-100 text-xs">P</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="px-5">
+                                    <h3 class="font-bold text-gray-800 text-sm mb-3">실천하고 리워드 받기</h3>
+                                    
+                                    <!-- 챌린지 리스트 -->
+                                    <div class="space-y-3">
+                                        <div class="bg-white p-4 rounded-xl shadow-sm border border-brand-200">
+                                            <div class="flex justify-between items-start mb-2">
+                                                <div class="bg-brand-100 p-2 rounded-full text-brand-600"><i data-lucide="coffee" class="w-4 h-4"></i></div>
+                                                <span class="bg-gray-100 text-gray-600 text-[10px] px-2 py-0.5 rounded font-medium">상시</span>
+                                            </div>
+                                            <h4 class="font-bold text-gray-800 text-xs mb-1">카페 다회용컵 리워드</h4>
+                                            <div class="flex justify-between items-center mt-3">
+                                                <span class="text-[10px] text-brand-600 bg-brand-50 px-1.5 py-0.5 rounded">탄소 -0.1kg</span>
+                                                <span class="font-bold text-brand-600 text-xs">+ 100 P</span>
+                                            </div>
+                                        </div>
+
+                                        <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
+                                            <div class="flex justify-between items-start mb-2">
+                                                <div class="bg-blue-100 p-2 rounded-full text-blue-600"><i data-lucide="recycle" class="w-4 h-4"></i></div>
+                                                <span class="bg-red-50 text-red-600 text-[10px] px-2 py-0.5 rounded font-medium">행사한정</span>
+                                            </div>
+                                            <h4 class="font-bold text-gray-800 text-xs mb-1">행사장 QR 분리배출</h4>
+                                            <div class="flex justify-between items-center mt-3">
+                                                <span class="text-[10px] text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded">탄소 -0.2kg</span>
+                                                <span class="font-bold text-blue-600 text-xs">+ 150 P</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- 목업 하단 네비게이션 -->
+                            <div class="absolute bottom-0 w-full bg-white border-t border-gray-200 px-4 py-3 flex justify-between items-center z-20 rounded-b-3xl">
+                                <div class="flex flex-col items-center gap-1 text-gray-300"><i data-lucide="home" class="w-5 h-5"></i></div>
+                                <div class="flex flex-col items-center gap-1 text-brand-600"><i data-lucide="check-square" class="w-5 h-5"></i></div>
+                                <div class="flex flex-col items-center gap-1 text-gray-300"><i data-lucide="map" class="w-5 h-5"></i></div>
+                                <div class="flex flex-col items-center gap-1 text-gray-300"><i data-lucide="gift" class="w-5 h-5"></i></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 슬라이드 4: 핵심 기능 2 - 에코 지도 (앱 화면 추가) -->
+        <div class="slide" id="slide-4">
+            <div class="bg-white rounded-3xl shadow-xl p-10 h-full border border-gray-100 flex flex-col">
+                <div class="flex items-center gap-3 mb-6">
+                    <div class="bg-brand-500 p-3 rounded-xl text-white">
+                        <i data-lucide="map" class="w-8 h-8"></i>
+                    </div>
+                    <h2 class="text-3xl font-bold text-gray-800">주요 기능 2. 우리 동네 에코 지도</h2>
+                </div>
+                
+                <div class="flex-1 grid grid-cols-1 lg:grid-cols-2 gap-10 items-center">
+                    <div>
+                        <h3 class="text-2xl font-bold text-gray-800 mb-4">친환경 상권 큐레이션</h3>
+                        <p class="text-lg text-gray-600 mb-8 leading-relaxed">
+                            사용자 주변의 제로웨이스트 샵, 다회용기 매장을 지도에 표시하여 <strong>지역 상권과 연계된 착한 소비</strong>를 유도합니다.
+                        </p>
+                        
+                        <div class="space-y-4">
+                            <div class="bg-gray-50 p-5 rounded-2xl flex items-center gap-5 border border-gray-200">
+                                <div class="bg-white w-12 h-12 rounded-full flex items-center justify-center shadow-sm text-brand-600">
+                                    <i data-lucide="store" class="w-6 h-6"></i>
+                                </div>
+                                <div>
+                                    <h4 class="font-bold text-gray-800">에코 카페 참여 매장</h4>
+                                    <p class="text-gray-500 text-sm">방문 및 텀블러 사용 시 추가 리워드 제공</p>
+                                </div>
+                            </div>
+                            <div class="bg-gray-50 p-5 rounded-2xl flex items-center gap-5 border border-gray-200">
+                                <div class="bg-white w-12 h-12 rounded-full flex items-center justify-center shadow-sm text-blue-500">
+                                    <i data-lucide="shopping-bag" class="w-6 h-6"></i>
+                                </div>
+                                <div>
+                                    <h4 class="font-bold text-gray-800">제로웨이스트 샵</h4>
+                                    <p class="text-gray-500 text-sm">포장재 없는 지역 소상공인 가게 안내</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 스마트폰 목업 UI: 에코 지도 -->
+                    <div class="flex justify-center">
+                        <div class="phone-mockup bg-gray-50 relative">
+                            <div class="phone-notch"></div>
+                            
+                            <!-- 지도 배경 -->
+                            <div class="absolute inset-0 top-0 h-[60%] w-full">
+                                <img src="https://images.unsplash.com/photo-1524661135-423995f22d0b?auto=format&fit=crop&q=80&w=400" alt="Map" class="w-full h-full object-cover opacity-70 grayscale">
+                                
+                                <!-- 지도 핀 -->
+                                <div class="absolute top-1/3 left-1/2 transform -translate-x-1/2 -translate-y-1/2 flex flex-col items-center animate-bounce">
+                                    <div class="bg-brand-500 text-white px-2 py-0.5 rounded text-[10px] font-bold shadow-lg mb-0.5">에코 카페 강남점</div>
+                                    <i data-lucide="map-pin" class="w-6 h-6 text-brand-600 fill-brand-500"></i>
+                                </div>
+                                <div class="absolute top-[45%] left-1/4 transform -translate-x-1/2 flex flex-col items-center">
+                                    <i data-lucide="map-pin" class="w-5 h-5 text-blue-600 fill-blue-500"></i>
+                                </div>
+                                <!-- 내 위치 -->
+                                <div class="absolute top-1/2 left-2/3 w-3 h-3 bg-red-500 rounded-full shadow-[0_0_0_4px_rgba(239,68,68,0.3)]"></div>
+                            </div>
+
+                            <!-- 바텀 시트 (리스트) -->
+                            <div class="absolute bottom-[60px] w-full bg-white rounded-t-3xl pt-5 px-5 pb-5 shadow-[0_-10px_20px_rgba(0,0,0,0.1)] h-[45%] overflow-y-auto">
+                                <div class="w-10 h-1 bg-gray-200 rounded-full mx-auto mb-4"></div>
+                                <h3 class="font-bold text-gray-800 text-sm mb-4">주변 친환경 점포</h3>
+                                
+                                <div class="space-y-3">
+                                    <div class="flex gap-3 items-center">
+                                        <div class="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center text-gray-400 shrink-0">
+                                            <i data-lucide="store" class="w-5 h-5"></i>
+                                        </div>
+                                        <div class="flex-1">
+                                            <div class="flex justify-between">
+                                                <h4 class="font-bold text-gray-800 text-xs">에코 카페 강남점</h4>
+                                                <span class="text-[9px] text-brand-600 bg-brand-50 px-1 rounded font-bold">150m</span>
+                                            </div>
+                                            <p class="text-[10px] text-gray-500 mt-0.5">다회용컵 지참시 할인+포인트</p>
+                                        </div>
+                                    </div>
+                                    <div class="flex gap-3 items-center">
+                                        <div class="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center text-gray-400 shrink-0">
+                                            <i data-lucide="shopping-bag" class="w-5 h-5"></i>
+                                        </div>
+                                        <div class="flex-1">
+                                            <div class="flex justify-between">
+                                                <h4 class="font-bold text-gray-800 text-xs">제로샵 '지구'</h4>
+                                                <span class="text-[9px] text-gray-600 bg-gray-100 px-1 rounded font-bold">320m</span>
+                                            </div>
+                                            <p class="text-[10px] text-gray-500 mt-0.5">리필 스테이션, 포장재 없는 가게</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- 목업 하단 네비게이션 -->
+                            <div class="absolute bottom-0 w-full bg-white border-t border-gray-200 px-4 py-3 flex justify-between items-center z-20 rounded-b-3xl">
+                                <div class="flex flex-col items-center gap-1 text-gray-300"><i data-lucide="home" class="w-5 h-5"></i></div>
+                                <div class="flex flex-col items-center gap-1 text-gray-300"><i data-lucide="check-square" class="w-5 h-5"></i></div>
+                                <div class="flex flex-col items-center gap-1 text-brand-600"><i data-lucide="map" class="w-5 h-5"></i></div>
+                                <div class="flex flex-col items-center gap-1 text-gray-300"><i data-lucide="gift" class="w-5 h-5"></i></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 슬라이드 5: 핵심 기능 3 - 스토어 (앱 화면 추가) -->
+        <div class="slide" id="slide-5">
+            <div class="bg-white rounded-3xl shadow-xl p-10 h-full border border-gray-100 flex flex-col">
+                <div class="flex items-center gap-3 mb-6">
+                    <div class="bg-brand-500 p-3 rounded-xl text-white">
+                        <i data-lucide="gift" class="w-8 h-8"></i>
+                    </div>
+                    <h2 class="text-3xl font-bold text-gray-800">주요 기능 3. 확실한 보상, 스토어</h2>
+                </div>
+                
+                <div class="flex-1 grid grid-cols-1 lg:grid-cols-2 gap-10 items-center">
+                    <div>
+                        <p class="text-lg text-gray-600 mb-8 leading-relaxed">
+                            모은 에코 포인트는 앱 내 스토어에서 <strong>기프티콘, 종량제 봉투 교환, 환경 단체 기부</strong> 등 실생활에 유용한 혜택으로 바로 전환할 수 있습니다.
+                        </p>
+                        
+                        <div class="grid grid-cols-2 gap-4 mb-4">
+                            <div class="bg-white border border-gray-200 rounded-xl p-4 flex flex-col items-center text-center shadow-sm">
+                                <div class="w-12 h-12 bg-blue-50 rounded-full flex items-center justify-center mb-2 text-blue-500">
+                                    <i data-lucide="shopping-cart" class="w-6 h-6"></i>
+                                </div>
+                                <h3 class="font-bold text-sm text-gray-800">편의점 상품권</h3>
+                                <p class="text-xs text-gray-500 mt-1">GS25, CU 등</p>
+                            </div>
+                            <div class="bg-white border border-gray-200 rounded-xl p-4 flex flex-col items-center text-center shadow-sm">
+                                <div class="w-12 h-12 bg-green-50 rounded-full flex items-center justify-center mb-2 text-green-600">
+                                    <i data-lucide="coffee" class="w-6 h-6"></i>
+                                </div>
+                                <h3 class="font-bold text-sm text-gray-800">유명 카페 커피</h3>
+                                <p class="text-xs text-gray-500 mt-1">스타벅스, 이디야 등</p>
+                            </div>
+                            <div class="bg-white border border-gray-200 rounded-xl p-4 flex flex-col items-center text-center shadow-sm">
+                                <div class="w-12 h-12 bg-orange-50 rounded-full flex items-center justify-center mb-2 text-orange-500">
+                                    <i data-lucide="trash-2" class="w-6 h-6"></i>
+                                </div>
+                                <h3 class="font-bold text-sm text-gray-800">종량제 봉투</h3>
+                                <p class="text-xs text-gray-500 mt-1">주민센터 바코드 교환</p>
+                            </div>
+                            <div class="bg-brand-50 border border-brand-200 rounded-xl p-4 flex flex-col items-center text-center shadow-sm">
+                                <div class="w-12 h-12 bg-white rounded-full flex items-center justify-center mb-2 text-brand-500">
+                                    <i data-lucide="heart-handshake" class="w-6 h-6"></i>
+                                </div>
+                                <h3 class="font-bold text-sm text-brand-700">환경 단체 기부</h3>
+                                <p class="text-xs text-brand-600 mt-1">구민 명의로 기부</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 스마트폰 목업 UI: 리워드 스토어 -->
+                    <div class="flex justify-center">
+                        <div class="phone-mockup bg-gray-50">
+                            <div class="phone-notch"></div>
+                            
+                            <div class="mockup-content h-full w-full overflow-y-auto pb-20 pt-12 px-5">
+                                <h3 class="font-bold text-gray-800 text-lg mb-1">리워드 교환소</h3>
+                                <p class="text-[10px] text-gray-500 mb-4">모은 포인트로 상품을 교환하세요</p>
+
+                                <!-- 내 포인트 현황 -->
+                                <div class="bg-white rounded-xl p-3 mb-5 flex justify-between items-center border border-gray-200 shadow-sm">
+                                    <span class="text-gray-700 font-bold text-xs">보유 포인트</span>
+                                    <div class="flex items-baseline gap-1">
+                                        <span class="text-lg font-bold text-brand-600">1,250</span>
+                                        <span class="text-[10px] text-brand-600">P</span>
+                                    </div>
+                                </div>
+
+                                <!-- 상품 그리드 -->
+                                <div class="grid grid-cols-2 gap-3">
+                                    <div class="bg-white p-3 rounded-xl border border-gray-100 flex flex-col items-center text-center shadow-sm">
+                                        <div class="w-8 h-8 bg-blue-50 rounded-full flex items-center justify-center mb-2 text-blue-500">
+                                            <i data-lucide="shopping-cart" class="w-4 h-4"></i>
+                                        </div>
+                                        <h4 class="font-bold text-[11px] text-gray-800 mb-1">GS25 1천원</h4>
+                                        <p class="text-brand-600 font-bold text-[11px] mb-2">1,000 P</p>
+                                        <button class="w-full bg-gray-800 text-white text-[10px] py-1.5 rounded-md">교환하기</button>
+                                    </div>
+                                    <div class="bg-white p-3 rounded-xl border border-gray-100 flex flex-col items-center text-center shadow-sm">
+                                        <div class="w-8 h-8 bg-green-50 rounded-full flex items-center justify-center mb-2 text-green-600">
+                                            <i data-lucide="coffee" class="w-4 h-4"></i>
+                                        </div>
+                                        <h4 class="font-bold text-[11px] text-gray-800 mb-1">스타벅스 커피</h4>
+                                        <p class="text-brand-600 font-bold text-[11px] mb-2">4,500 P</p>
+                                        <button class="w-full bg-gray-200 text-gray-500 text-[10px] py-1.5 rounded-md">포인트 부족</button>
+                                    </div>
+                                    <div class="bg-white p-3 rounded-xl border border-gray-100 flex flex-col items-center text-center shadow-sm">
+                                        <div class="w-8 h-8 bg-orange-50 rounded-full flex items-center justify-center mb-2 text-orange-500">
+                                            <i data-lucide="trash-2" class="w-4 h-4"></i>
+                                        </div>
+                                        <h4 class="font-bold text-[11px] text-gray-800 mb-1">종량제 10L</h4>
+                                        <p class="text-brand-600 font-bold text-[11px] mb-2">300 P</p>
+                                        <button class="w-full bg-gray-800 text-white text-[10px] py-1.5 rounded-md">교환하기</button>
+                                    </div>
+                                    <div class="bg-brand-50 p-3 rounded-xl border border-brand-100 flex flex-col items-center text-center shadow-sm">
+                                        <div class="w-8 h-8 bg-white rounded-full flex items-center justify-center mb-2 text-brand-500">
+                                            <i data-lucide="heart-handshake" class="w-4 h-4"></i>
+                                        </div>
+                                        <h4 class="font-bold text-[11px] text-gray-800 mb-1">나무심기 기부</h4>
+                                        <p class="text-brand-600 font-bold text-[11px] mb-2">자율 P</p>
+                                        <button class="w-full bg-brand-600 text-white text-[10px] py-1.5 rounded-md">참여하기</button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- 목업 하단 네비게이션 -->
+                            <div class="absolute bottom-0 w-full bg-white border-t border-gray-200 px-4 py-3 flex justify-between items-center z-20 rounded-b-3xl">
+                                <div class="flex flex-col items-center gap-1 text-gray-300"><i data-lucide="home" class="w-5 h-5"></i></div>
+                                <div class="flex flex-col items-center gap-1 text-gray-300"><i data-lucide="check-square" class="w-5 h-5"></i></div>
+                                <div class="flex flex-col items-center gap-1 text-gray-300"><i data-lucide="map" class="w-5 h-5"></i></div>
+                                <div class="flex flex-col items-center gap-1 text-brand-600"><i data-lucide="gift" class="w-5 h-5"></i></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 슬라이드 6: 결론 및 기대효과 -->
+        <div class="slide" id="slide-6">
+            <div class="bg-brand-600 rounded-3xl shadow-xl p-12 h-full flex flex-col justify-center text-white relative overflow-hidden">
+                <!-- 배경 장식 -->
+                <i data-lucide="globe" class="absolute -right-20 -bottom-20 w-96 h-96 opacity-10 text-white"></i>
+                
+                <h2 class="text-5xl font-black mb-12 text-center relative z-10">에코-링크가 만드는 변화</h2>
+                
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-8 relative z-10">
+                    <div class="bg-white/10 backdrop-blur-sm p-8 rounded-2xl border border-white/20 text-center">
+                        <div class="bg-white text-brand-600 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-6">
+                            <i data-lucide="bar-chart-3" class="w-8 h-8"></i>
+                        </div>
+                        <h3 class="text-2xl font-bold mb-4">데이터 기반 행정</h3>
+                        <p class="text-brand-100 text-lg">구민의 실질적인 탄소 저감 데이터를 축적하여 정확한 환경 정책 수립의 지표로 활용합니다.</p>
+                    </div>
+
+                    <div class="bg-white/10 backdrop-blur-sm p-8 rounded-2xl border border-white/20 text-center">
+                        <div class="bg-white text-brand-600 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-6">
+                            <i data-lucide="store" class="w-8 h-8"></i>
+                        </div>
+                        <h3 class="text-2xl font-bold mb-4">지역 경제 활성화</h3>
+                        <p class="text-brand-100 text-lg">관내 친환경 점포와의 제휴를 통해 착한 소비를 촉진하고 소상공인의 매출 증대를 돕습니다.</p>
+                    </div>
+
+                    <div class="bg-white/10 backdrop-blur-sm p-8 rounded-2xl border border-white/20 text-center">
+                        <div class="bg-white text-brand-600 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-6">
+                            <i data-lucide="users" class="w-8 h-8"></i>
+                        </div>
+                        <h3 class="text-2xl font-bold mb-4">자발적 구민 참여</h3>
+                        <p class="text-brand-100 text-lg">직관적인 보상 시스템과 게이미피케이션 요소로 지속가능한 환경 보호 문화를 정착시킵니다.</p>
+                    </div>
+                </div>
+
+                <div class="text-center mt-16 relative z-10">
+                    <p class="text-2xl font-bold text-brand-100">가장 앞서가는 친환경 스마트 도시,</p>
+                    <p class="text-4xl font-black mt-2">강남구가 시작합니다.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- 공통 UI: 좌우 네비게이션 버튼 -->
+        <button id="prev-btn" class="nav-btn" onclick="prevSlide()" aria-label="이전 슬라이드">
+            <i data-lucide="chevron-left" class="w-8 h-8"></i>
+        </button>
+        <button id="next-btn" class="nav-btn" onclick="nextSlide()" aria-label="다음 슬라이드">
+            <i data-lucide="chevron-right" class="w-8 h-8"></i>
+        </button>
+
+        <!-- 공통 UI: 진행 상태 -->
+        <div id="slide-indicator">1 / 6</div>
+        <div id="progress-bar-container">
+            <div id="progress-bar"></div>
+        </div>
+
+    </div>
+
+    <script>
+        // Lucide 아이콘 초기화
+        lucide.createIcons();
+
+        // 슬라이드 로직
+        let currentSlide = 0;
+        const slides = document.querySelectorAll('.slide');
+        const totalSlides = slides.length;
+        const progressBar = document.getElementById('progress-bar');
+        const indicator = document.getElementById('slide-indicator');
+
+        function updateSlide(index) {
+            // 범위 초과 방지
+            if (index < 0) index = 0;
+            if (index >= totalSlides) index = totalSlides - 1;
+            
+            // 모든 슬라이드 숨김
+            slides.forEach(slide => {
+                slide.classList.remove('active');
+            });
+            
+            // 현재 슬라이드 표시
+            slides[index].classList.add('active');
+            currentSlide = index;
+
+            // UI 업데이트
+            indicator.innerText = `${currentSlide + 1} / ${totalSlides}`;
+            const progressPercentage = ((currentSlide + 1) / totalSlides) * 100;
+            progressBar.style.width = `${progressPercentage}%`;
+
+            // 버튼 상태 업데이트 (첫/마지막 슬라이드)
+            document.getElementById('prev-btn').style.opacity = currentSlide === 0 ? '0.3' : '1';
+            document.getElementById('prev-btn').style.pointerEvents = currentSlide === 0 ? 'none' : 'auto';
+            
+            document.getElementById('next-btn').style.opacity = currentSlide === totalSlides - 1 ? '0.3' : '1';
+            document.getElementById('next-btn').style.pointerEvents = currentSlide === totalSlides - 1 ? 'none' : 'auto';
+        }
+
+        function nextSlide() {
+            if (currentSlide < totalSlides - 1) {
+                updateSlide(currentSlide + 1);
+            }
+        }
+
+        function prevSlide() {
+            if (currentSlide > 0) {
+                updateSlide(currentSlide - 1);
+            }
+        }
+
+        // 키보드 방향키 이벤트 연결
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowRight' || e.key === ' ') {
+                nextSlide();
+            } else if (e.key === 'ArrowLeft') {
+                prevSlide();
+            }
+        });
+
+        // 초기 렌더링
+        updateSlide(0);
+    </script>
+</body>
+</html>

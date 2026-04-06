@@ -1,274 +1,389 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>강남 파킹프리 - 주차 스트레스 없는 스마트 강남</title>
-    
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    
-    <!-- Pretendard Font -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
-    
-    <!-- FontAwesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    fontFamily: {
-                        sans: ['Pretendard', 'sans-serif'],
-                    },
-                    colors: {
-                        primary: '#3b82f6',
-                        secondary: '#0f172a',
-                    }
-                }
-            }
-        }
-    </script>
-    <style>
-        body { -webkit-font-smoothing: antialiased; }
-        .gradient-text {
-            background: linear-gradient(135deg, #3b82f6 0%, #10b981 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-        .hero-pattern {
-            background-color: #f8fafc;
-            background-image: radial-gradient(#e2e8f0 1px, transparent 1px);
-            background-size: 24px 24px;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>강남 파킹프리</title>
+  
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- FontAwesome (아이콘) -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <!-- Leaflet CSS (지도) -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  
+  <!-- React & Babel -->
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  
+  <!-- Leaflet JS (지도) -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+  <style>
+    /* 스크롤바 숨김 처리용 CSS */
+    .scrollbar-hide::-webkit-scrollbar { display: none; }
+    .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+    body { -webkit-tap-highlight-color: transparent; }
+  </style>
 </head>
-<body class="font-sans text-slate-800 bg-white">
+<body class="bg-slate-50 font-sans text-slate-900 selection:bg-blue-100">
+  <div id="root"></div>
 
-    <!-- Navigation -->
-    <nav class="fixed w-full z-50 bg-white/80 backdrop-blur-md border-b border-slate-100">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex justify-between items-center h-16">
-                <div class="flex items-center space-x-2">
-                    <div class="bg-blue-600 text-white p-2 rounded-lg">
-                        <i class="fas fa-car"></i>
-                    </div>
-                    <span class="font-bold text-xl tracking-tight">파킹프리</span>
-                </div>
-                <div class="hidden md:flex space-x-8 font-medium text-slate-600">
-                    <a href="#problem" class="hover:text-blue-600 transition">문제 정의</a>
-                    <a href="#features" class="hover:text-blue-600 transition">핵심 기능</a>
-                    <a href="#impact" class="hover:text-blue-600 transition">기대 효과</a>
-                </div>
-                <div>
-                    <button class="bg-slate-900 text-white px-5 py-2 rounded-full font-bold hover:bg-slate-800 transition shadow-lg shadow-slate-200">
-                        앱 체험하기
-                    </button>
-                </div>
+  <script type="text/babel">
+    const { useState, useEffect, useRef } = React;
+
+    // --- Mock Data ---
+    const PARKING_SPOTS = [
+      { id: 1, name: '역삼1동 공영주차장', type: '공영', available: 12, total: 50, price: '300원/10분', distance: '250m', lat: 37.5000, lng: 127.0350, recommendFor: ['visitor', 'merchant'] },
+      { id: 2, name: '논현로 노상 주차장', type: '노상', available: 3, total: 20, price: '500원/10분', distance: '400m', lat: 37.5111, lng: 127.0286, recommendFor: ['visitor'] },
+      { id: 3, name: '대치동 거주자우선구역 A', type: '거주자', available: '신청가능', total: 100, price: '40,000원/월', distance: '150m', lat: 37.4950, lng: 127.0600, recommendFor: ['resident'] },
+      { id: 4, name: '강남역 환승 주차장', type: '공영', available: 45, total: 200, price: '200원/10분', distance: '800m', lat: 37.4979, lng: 127.0276, recommendFor: ['visitor', 'merchant'] },
+    ];
+
+    const HEATMAP_DATA = [
+      { id: 1, area: '강남역 11번 출구 이면도로', complaintLevel: 'high', type: '불법주정차', demand: 95 },
+      { id: 2, area: '논현동 먹자골목', complaintLevel: 'high', type: '야간주차난', demand: 88 },
+      { id: 3, area: '역삼동 주택가', complaintLevel: 'medium', type: '거주자구역 무단주차', demand: 70 },
+      { id: 4, area: '양재천 카페거리', complaintLevel: 'low', type: '주말만차', demand: 45 },
+    ];
+
+    function App() {
+      const [activeTab, setActiveTab] = useState('find');
+      const [userType, setUserType] = useState('visitor');
+      const [isMapReady, setIsMapReady] = useState(false);
+      const mapRef = useRef(null);
+      const mapInstance = useRef(null);
+
+      // 1. 지도 초기 생성 (앱 실행 시 단 한 번만 생성하여 메모리 유지)
+      useEffect(() => {
+        if (!mapRef.current || mapInstance.current) return;
+
+        const map = L.map(mapRef.current).setView([37.4979, 127.0276], 14);
+        L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+          maxZoom: 19,
+          attribution: '&copy; OpenStreetMap contributors'
+        }).addTo(map);
+
+        mapInstance.current = map;
+        setIsMapReady(true); // 지도가 준비되었음을 알림
+      }, []);
+
+      // 2. 탭이 바뀔 때마다 숨겨졌던 지도의 크기를 올바르게 재계산
+      useEffect(() => {
+        if (activeTab === 'find' && mapInstance.current) {
+          setTimeout(() => {
+            mapInstance.current.invalidateSize();
+          }, 50); // 화면이 전환된 직후 약간의 딜레이를 주어 크기 재조정
+        }
+      }, [activeTab]);
+
+      // 3. 사용자 유형이 바뀌면 마커 새롭게 업데이트
+      useEffect(() => {
+        if (!isMapReady || !mapInstance.current) return;
+        const map = mapInstance.current;
+
+        // 기존 마커 지우기
+        map.eachLayer((layer) => {
+          if (layer instanceof L.CircleMarker) {
+            map.removeLayer(layer);
+          }
+        });
+
+        // 사용자 유형에 맞는 주차장만 표시
+        PARKING_SPOTS.filter(s => s.recommendFor.includes(userType)).forEach(spot => {
+          const isResident = spot.type === '거주자';
+          const markerColor = isResident ? '#9333ea' : '#2563eb';
+          const fillColor = isResident ? '#a855f7' : '#3b82f6';
+          
+          const marker = L.circleMarker([spot.lat, spot.lng], {
+            color: markerColor,
+            fillColor: fillColor,
+            fillOpacity: 0.8,
+            radius: 12
+          }).addTo(map);
+
+          marker.bindPopup(`
+            <div style="text-align: center; min-width: 100px; font-family: sans-serif;">
+              <strong style="font-size: 14px; color: #1f2937;">${spot.name}</strong><br/>
+              <div style="margin-top: 4px;">
+                <span style="color: ${markerColor}; font-weight: 800; font-size: 16px;">${spot.available}</span>
+                <span style="font-size: 12px; color: #4b5563;">${typeof spot.available === 'number' ? '자리 남음' : ''}</span>
+              </div>
+              <div style="font-size: 12px; color: #6b7280; margin-top: 2px;">${spot.price}</div>
             </div>
-        </div>
-    </nav>
+          `);
+        });
+      }, [userType, isMapReady]);
 
-    <!-- Hero Section -->
-    <section class="pt-32 pb-20 lg:pt-40 lg:pb-28 hero-pattern overflow-hidden">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
-            <div class="text-center max-w-3xl mx-auto">
-                <div class="inline-flex items-center space-x-2 bg-blue-50 text-blue-700 px-4 py-2 rounded-full font-bold text-sm mb-6 border border-blue-100">
-                    <span class="flex h-2 w-2 relative">
-                      <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
-                      <span class="relative inline-flex rounded-full h-2 w-2 bg-blue-500"></span>
-                    </span>
-                    <span>강남구 모빌리티 혁신 프로젝트</span>
-                </div>
-                <h1 class="text-5xl lg:text-7xl font-extrabold tracking-tight mb-8 leading-tight">
-                    정보 비대칭 없는 <br />
-                    <span class="gradient-text">완벽한 맞춤형 주차</span>
-                </h1>
-                <p class="text-xl text-slate-500 mb-10 leading-relaxed font-medium">
-                    내 주변 지금 주차하기 가장 쉬운 곳을 알려드립니다.<br />
-                    데이터 기반 매칭으로 강남의 주차 스트레스를 완전히 끝내세요.
-                </p>
-                <div class="flex justify-center space-x-4">
-                    <button class="bg-blue-600 text-white px-8 py-4 rounded-xl font-bold text-lg hover:bg-blue-700 transition shadow-xl shadow-blue-200/50 flex items-center">
-                        <i class="fab fa-apple text-xl mr-2"></i> App Store
-                    </button>
-                    <button class="bg-white text-slate-800 px-8 py-4 rounded-xl font-bold text-lg hover:bg-slate-50 transition border border-slate-200 shadow-sm flex items-center">
-                        <i class="fab fa-google-play text-xl mr-2 text-green-500"></i> Google Play
-                    </button>
-                </div>
+      // --- UI Rendering Functions ---
+      const renderHeader = () => (
+        <header className="bg-white/90 backdrop-blur-md sticky top-0 z-[1000] border-b border-gray-100 transition-all">
+          <div className="max-w-md mx-auto sm:max-w-2xl lg:max-w-4xl px-5 py-3.5 flex items-center justify-between">
+            <div className="flex items-center space-x-2">
+              <div className="bg-blue-600 w-8 h-8 flex items-center justify-center rounded-xl shadow-sm shadow-blue-200">
+                <i className="fas fa-car text-white"></i>
+              </div>
+              <h1 className="text-xl font-extrabold tracking-tight text-slate-800">파킹프리</h1>
             </div>
-        </div>
-    </section>
-
-    <!-- Problem Definition -->
-    <section id="problem" class="py-24 bg-white">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
-                <div>
-                    <h2 class="text-3xl font-extrabold mb-6">주차, 강남구의<br/>가장 크고 현실적인 스트레스</h2>
-                    <p class="text-lg text-slate-500 mb-8 leading-relaxed">
-                        강남구는 끝없는 주차 자리 문의와 불법주정차 단속 요청에 시달리고 있습니다. 주차민원콜센터가 24시간 운영될 만큼 심각한 생활형 민원입니다.
-                    </p>
-                    <div class="bg-slate-50 border border-slate-100 p-6 rounded-2xl">
-                        <h4 class="font-bold text-slate-800 mb-2">💡 우리의 문제 정의</h4>
-                        <p class="text-slate-600 font-medium italic">
-                            "강남의 주차 불편을 정보 비대칭 없이 줄일 수 있을까?"
-                        </p>
-                    </div>
-                </div>
-                <div class="grid grid-cols-2 gap-4">
-                    <div class="bg-white p-6 rounded-2xl shadow-[0_4px_20px_rgba(0,0,0,0.05)] border border-slate-100 text-center">
-                        <div class="text-4xl font-black text-blue-600 mb-2">24h</div>
-                        <div class="text-sm font-bold text-slate-500">주차민원콜센터 운영</div>
-                    </div>
-                    <div class="bg-white p-6 rounded-2xl shadow-[0_4px_20px_rgba(0,0,0,0.05)] border border-slate-100 text-center mt-8">
-                        <div class="text-4xl font-black text-emerald-500 mb-2">'26. 5월</div>
-                        <div class="text-sm font-bold text-slate-500">월정기주차 전면 확대</div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Features Overview -->
-    <section id="features" class="py-24 bg-slate-50">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="text-center mb-20">
-                <h2 class="text-sm font-bold text-blue-600 tracking-wide uppercase mb-3">Core Features</h2>
-                <h3 class="text-3xl md:text-4xl font-extrabold text-slate-900">주차의 패러다임을 바꿀 3가지 혁신</h3>
-            </div>
-
-            <!-- Feature 1 -->
-            <div class="flex flex-col lg:flex-row items-center gap-16 mb-24">
-                <div class="w-full lg:w-1/2">
-                    <div class="bg-white rounded-3xl shadow-xl shadow-slate-200/50 p-8 border border-slate-100 relative overflow-hidden h-[400px] flex items-center justify-center">
-                        <!-- Abstract UI Representation -->
-                        <div class="w-full max-w-sm space-y-4 relative z-10">
-                            <div class="bg-slate-800 text-white p-4 rounded-2xl flex justify-between items-center transform -rotate-2 hover:rotate-0 transition duration-300">
-                                <div class="flex items-center"><i class="fas fa-user-tag text-blue-400 mr-3 text-xl"></i><span class="font-bold">방문객 모드</span></div>
-                                <span class="bg-blue-500 text-xs px-2 py-1 rounded font-bold">추천 1순위</span>
-                            </div>
-                            <div class="bg-white p-4 rounded-2xl shadow-md flex justify-between items-center transform translate-x-4 border border-slate-100">
-                                <div class="flex items-center"><i class="fas fa-home text-purple-500 mr-3 text-xl"></i><span class="font-bold text-slate-700">거주자 모드</span></div>
-                                <span class="text-purple-600 font-bold text-sm">빈자리 3</span>
-                            </div>
-                            <div class="bg-white p-4 rounded-2xl shadow-md flex justify-between items-center transform -translate-x-2 border border-slate-100">
-                                <div class="flex items-center"><i class="fas fa-briefcase text-emerald-500 mr-3 text-xl"></i><span class="font-bold text-slate-700">상인/직장인 모드</span></div>
-                                <span class="text-emerald-600 font-bold text-sm">월정기 신청</span>
-                            </div>
-                        </div>
-                        <div class="absolute -right-10 -bottom-10 w-64 h-64 bg-blue-100 rounded-full blur-3xl opacity-50"></div>
-                    </div>
-                </div>
-                <div class="w-full lg:w-1/2">
-                    <div class="inline-block p-3 bg-blue-100 text-blue-600 rounded-xl mb-6">
-                        <i class="fas fa-users text-2xl"></i>
-                    </div>
-                    <h3 class="text-3xl font-bold mb-4">페르소나 기반<br/>맞춤형 주차장 큐레이션</h3>
-                    <p class="text-lg text-slate-500 mb-6 leading-relaxed">
-                        사용자가 <strong>방문객, 거주자, 상인/직장인</strong> 중 어떤 목적인지에 따라 추천 알고리즘이 바뀝니다. 단기 공영주차장부터 장기 월정기주차, 거주자우선구역 빈자리까지 상황에 맞는 최적의 공간을 제안합니다.
-                    </p>
-                </div>
-            </div>
-
-            <!-- Feature 2 -->
-            <div class="flex flex-col lg:flex-row-reverse items-center gap-16 mb-24">
-                <div class="w-full lg:w-1/2">
-                    <div class="bg-slate-900 rounded-3xl shadow-xl shadow-slate-900/20 p-8 border border-slate-800 relative overflow-hidden h-[400px] flex items-center justify-center">
-                        <div class="w-full max-w-sm space-y-4 relative z-10">
-                            <!-- Heatmap Abstract UI -->
-                            <div class="flex justify-between items-end h-32 border-b border-slate-700 pb-2 px-4">
-                                <div class="w-12 bg-emerald-500/80 rounded-t-lg h-[30%] relative group"></div>
-                                <div class="w-12 bg-orange-400/80 rounded-t-lg h-[60%] relative"></div>
-                                <div class="w-12 bg-red-500/80 rounded-t-lg h-[90%] relative shadow-[0_0_15px_rgba(239,68,68,0.5)]">
-                                    <div class="absolute -top-10 left-1/2 transform -translate-x-1/2 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded whitespace-nowrap">민원 폭주</div>
-                                </div>
-                                <div class="w-12 bg-emerald-500/80 rounded-t-lg h-[40%] relative"></div>
-                            </div>
-                            <div class="text-center text-slate-400 text-sm font-medium mt-4">
-                                실시간 강남구 주차 수요 히트맵
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="w-full lg:w-1/2">
-                    <div class="inline-block p-3 bg-red-100 text-red-500 rounded-xl mb-6">
-                        <i class="fas fa-map text-2xl"></i>
-                    </div>
-                    <h3 class="text-3xl font-bold mb-4">데이터로 예측하는<br/>수요 및 민원 히트맵</h3>
-                    <p class="text-lg text-slate-500 mb-6 leading-relaxed">
-                        시간대별 주차 수요와 불법주정차 민원 다발 구역을 지도 상에 시각화합니다. 붉게 물든 혼잡 구역을 피할 수 있도록 사전에 <strong>"인근 OOO 공영주차장"</strong> 같은 스마트 대안을 제시하여 교통 흐름을 원활하게 합니다.
-                    </p>
-                </div>
-            </div>
-
-            <!-- Feature 3 -->
-            <div class="flex flex-col lg:flex-row items-center gap-16">
-                <div class="w-full lg:w-1/2">
-                    <div class="bg-gradient-to-br from-blue-600 to-indigo-700 rounded-3xl shadow-xl shadow-indigo-200 p-8 relative overflow-hidden h-[400px] flex items-center justify-center text-white">
-                        <div class="text-center relative z-10">
-                            <i class="fas fa-calendar-check text-6xl mb-6 opacity-90"></i>
-                            <h4 class="text-2xl font-black mb-2">월정기주차 간편 신청</h4>
-                            <p class="text-blue-100 font-medium opacity-90 mb-6">복잡한 서류 없이 1분 만에 끝내는</p>
-                            <button class="bg-white text-blue-600 px-6 py-2 rounded-full font-bold shadow-lg transform transition hover:scale-105">
-                                대기열 등록하기
-                            </button>
-                        </div>
-                        <div class="absolute -left-20 -bottom-20 w-80 h-80 bg-white/10 rounded-full blur-2xl"></div>
-                    </div>
-                </div>
-                <div class="w-full lg:w-1/2">
-                    <div class="inline-block p-3 bg-indigo-100 text-indigo-600 rounded-xl mb-6">
-                        <i class="fas fa-file-signature text-2xl"></i>
-                    </div>
-                    <h3 class="text-3xl font-bold mb-4">2026년 주차 정책<br/>완벽 연동 및 공유</h3>
-                    <p class="text-lg text-slate-500 mb-6 leading-relaxed">
-                        2026년 5월부터 강남구 전역으로 확대되는 <strong>'우리동네 월정기주차'</strong> 정책을 앱 내에 완벽히 연동했습니다. 앱에서 신청 가능 여부를 즉시 조회하고, 비어있는 낮 시간대 거주자우선구역을 공유해 부수입까지 창출하세요.
-                    </p>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Impact & Stats -->
-    <section id="impact" class="py-24 bg-slate-900 text-white border-b border-slate-800">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-            <h2 class="text-3xl md:text-4xl font-extrabold mb-16">파킹프리가 만드는 확실한 변화</h2>
-            
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-12">
-                <div class="p-6">
-                    <div class="text-6xl font-black bg-gradient-to-r from-blue-400 to-emerald-400 -webkit-background-clip-text text-transparent mb-4 inline-block">80%</div>
-                    <h4 class="text-xl font-bold mb-2">탐색 시간 절감</h4>
-                    <p class="text-slate-400 font-medium">평균 15분 걸리던 목적지 주변 주차장 탐색을 3분 이내로 단축합니다.</p>
-                </div>
-                <div class="p-6 md:border-l md:border-slate-800">
-                    <div class="text-6xl font-black bg-gradient-to-r from-blue-400 to-emerald-400 -webkit-background-clip-text text-transparent mb-4 inline-block">60%</div>
-                    <h4 class="text-xl font-bold mb-2">민원 발생 감소</h4>
-                    <p class="text-slate-400 font-medium">사전 대안 제시를 통해 불법주정차 관련 민원을 획기적으로 줄입니다.</p>
-                </div>
-                <div class="p-6 md:border-l md:border-slate-800">
-                    <div class="text-6xl font-black bg-gradient-to-r from-blue-400 to-emerald-400 -webkit-background-clip-text text-transparent mb-4 inline-block">ZERO</div>
-                    <h4 class="text-xl font-bold mb-2">정보 비대칭</h4>
-                    <p class="text-slate-400 font-medium">거주자와 방문객 모두가 실시간으로 투명한 주차 데이터를 공유받습니다.</p>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Footer / CTA -->
-    <footer class="bg-slate-900 pt-20 pb-10">
-        <div class="max-w-4xl mx-auto px-4 text-center">
-            <h2 class="text-3xl font-extrabold text-white mb-6">주차 스트레스 없는 강남구, 지금 시작하세요</h2>
-            <p class="text-slate-400 text-lg mb-10">모바일 앱과 웹에서 모두 이용 가능합니다.</p>
-            <button class="bg-blue-600 text-white px-10 py-4 rounded-xl font-bold text-xl hover:bg-blue-500 transition shadow-lg shadow-blue-500/30">
-                파킹프리 웹 서비스 시작하기
+            <button className="relative w-9 h-9 flex items-center justify-center text-slate-400 hover:text-slate-600 transition-colors bg-slate-50 rounded-full">
+              <i className="far fa-bell text-lg"></i>
+              <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full border-2 border-slate-50"></span>
             </button>
-            
-            <div class="mt-24 pt-8 border-t border-slate-800 text-slate-500 text-sm font-medium">
-                &copy; 2026 Gangnam Parking Free Project. All rights reserved.
-            </div>
-        </div>
-    </footer>
+          </div>
+        </header>
+      );
 
+      const renderBottomNav = () => (
+        <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-100 pb-safe z-[1000] shadow-[0_-4px_20px_rgba(0,0,0,0.03)]">
+          <div className="max-w-md mx-auto sm:max-w-2xl lg:max-w-4xl flex justify-around items-center h-16 px-2">
+            <button onClick={() => setActiveTab('find')} className={`flex flex-col items-center justify-center w-full h-full space-y-1 transition-colors ${activeTab === 'find' ? 'text-blue-600' : 'text-slate-400 hover:text-slate-600'}`}>
+              <i className={`fas fa-map-marked-alt text-xl ${activeTab === 'find' ? 'text-blue-600' : ''}`}></i>
+              <span className="text-[10px] font-bold mt-1">주차장 찾기</span>
+            </button>
+            <button onClick={() => setActiveTab('heatmap')} className={`flex flex-col items-center justify-center w-full h-full space-y-1 transition-colors ${activeTab === 'heatmap' ? 'text-blue-600' : 'text-slate-400 hover:text-slate-600'}`}>
+              <i className={`fas fa-chart-bar text-xl ${activeTab === 'heatmap' ? 'text-blue-600' : ''}`}></i>
+              <span className="text-[10px] font-bold mt-1">수요/민원 예측</span>
+            </button>
+            <button onClick={() => setActiveTab('apply')} className={`flex flex-col items-center justify-center w-full h-full space-y-1 transition-colors ${activeTab === 'apply' ? 'text-blue-600' : 'text-slate-400 hover:text-slate-600'}`}>
+              <i className={`fas fa-clipboard-list text-xl ${activeTab === 'apply' ? 'text-blue-600' : ''}`}></i>
+              <span className="text-[10px] font-bold mt-1">정기주차 신청</span>
+            </button>
+          </div>
+        </nav>
+      );
+
+      const renderTabFindParking = () => (
+        <div className="space-y-5">
+          {/* User Persona Selector (Chips) */}
+          <div className="flex space-x-2 overflow-x-auto pb-1 scrollbar-hide px-1">
+            {['visitor', 'resident', 'merchant'].map((type) => (
+              <button
+                key={type}
+                onClick={() => setUserType(type)}
+                className={`flex-none px-5 py-2.5 text-[13px] font-bold rounded-full transition-all duration-200 ${
+                  userType === type 
+                    ? 'bg-slate-800 text-white shadow-md transform scale-105' 
+                    : 'bg-white text-slate-500 border border-slate-200 hover:bg-slate-50'
+                }`}
+              >
+                {type === 'visitor' ? '🚗 방문객' : type === 'resident' ? '🏠 거주자' : '💼 상인/직장인'}
+              </button>
+            ))}
+          </div>
+
+          {/* Real Map Area */}
+          <div className="relative bg-slate-100 rounded-[2rem] h-[300px] overflow-hidden shadow-[0_8px_30px_rgb(0,0,0,0.06)] border border-slate-200/60 z-0">
+            <div ref={mapRef} className="absolute inset-0 w-full h-full z-10"></div>
+            
+            <div className="absolute top-4 left-4 right-4 z-[400] pointer-events-none">
+              <div className="bg-white/90 backdrop-blur px-4 py-3 rounded-2xl shadow-lg border border-white/50 flex items-center space-x-3 pointer-events-auto">
+                <i className="fas fa-search text-slate-400"></i>
+                <input type="text" placeholder="강남구 내 목적지 검색" className="bg-transparent border-none outline-none text-sm w-full font-medium placeholder:text-slate-400" />
+              </div>
+            </div>
+          </div>
+
+          {/* Recommended List */}
+          <div className="space-y-4">
+            <div className="flex justify-between items-end px-1 pt-2">
+              <h3 className="text-lg font-extrabold text-slate-800 tracking-tight">내 주변 추천 주차장</h3>
+              <span className="text-[11px] font-extrabold text-blue-600 bg-blue-50 px-2 py-1 rounded-md flex items-center">
+                <i className="far fa-clock mr-1"></i>실시간
+              </span>
+            </div>
+            
+            <div className="space-y-3 pb-4">
+              {PARKING_SPOTS.filter(spot => spot.recommendFor.includes(userType)).map((spot) => (
+                <div 
+                  key={spot.id} 
+                  onClick={() => {
+                    if (mapInstance.current) {
+                      mapInstance.current.flyTo([spot.lat, spot.lng], 16, { animate: true, duration: 0.8 });
+                      window.scrollTo({ top: 0, behavior: 'smooth' });
+                    }
+                  }}
+                  className="bg-white p-5 rounded-[1.5rem] shadow-[0_2px_15px_rgb(0,0,0,0.03)] border border-slate-100 flex flex-col gap-4 hover:border-blue-400 hover:shadow-md transition-all cursor-pointer group"
+                >
+                  <div className="flex justify-between items-start">
+                    <div className="flex flex-col gap-1.5">
+                      <div className="flex items-center space-x-2">
+                        <span className={`text-[11px] font-extrabold px-2 py-0.5 rounded-md ${spot.type === '공영' ? 'bg-emerald-100 text-emerald-700' : 'bg-indigo-100 text-indigo-700'}`}>
+                          {spot.type}
+                        </span>
+                        <span className="text-xs font-bold text-slate-400">{spot.distance}</span>
+                      </div>
+                      <h4 className="text-[17px] font-extrabold text-slate-800">${spot.name}</h4>
+                    </div>
+                    <div className="flex flex-col items-end">
+                      <div className="flex items-baseline space-x-0.5">
+                        <span className="text-2xl font-black text-blue-600">{typeof spot.available === 'number' ? spot.available : spot.available}</span>
+                        {typeof spot.available === 'number' && <span className="text-sm font-bold text-slate-300">/{spot.total}</span>}
+                      </div>
+                      <span className="text-[11px] text-slate-400 font-bold tracking-tight">여유 공간</span>
+                    </div>
+                  </div>
+                  
+                  <div className="h-px w-full bg-slate-50"></div>
+                  
+                  <div className="flex justify-between items-center">
+                    <span className="font-extrabold text-slate-700 text-sm">${spot.price}</span>
+                    <div className="flex items-center text-[13px] font-bold text-blue-600 bg-blue-50 px-3 py-1.5 rounded-xl group-hover:bg-blue-600 group-hover:text-white transition-colors">
+                      길안내 <i className="fas fa-chevron-right ml-1 text-[10px]"></i>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      );
+
+      const renderTabHeatmap = () => (
+        <div className="space-y-6">
+          <div className="bg-gradient-to-br from-slate-800 to-slate-900 p-6 rounded-[2rem] shadow-lg relative overflow-hidden">
+            <div className="absolute -right-4 -top-4 opacity-10">
+              <i className="fas fa-chart-pie text-[8rem] text-white"></i>
+            </div>
+            <h2 className="text-xl font-extrabold text-white mb-2 relative z-10">데이터로 보는 주차지도</h2>
+            <p className="text-[13px] text-slate-300 relative z-10 font-medium">시간대별 주차 수요와 민원 다발 구역을 시각화하여 스마트한 주차를 돕습니다.</p>
+          </div>
+
+          <div className="flex justify-between items-center px-1">
+            <h3 className="text-lg font-extrabold text-slate-800">현재 혼잡도 예측</h3>
+            <select className="text-sm border-none bg-white shadow-sm rounded-xl px-3 py-2 font-bold text-slate-600 outline-none">
+              <option>실시간 (현재)</option>
+              <option>오늘 야간 (20:00~)</option>
+              <option>주말 (토~일)</option>
+            </select>
+          </div>
+
+          <div className="space-y-4 pb-4">
+            {HEATMAP_DATA.map((data) => (
+              <div key={data.id} className="bg-white p-5 rounded-[1.5rem] shadow-[0_2px_15px_rgb(0,0,0,0.03)] border border-slate-100 flex flex-col gap-3">
+                <div className="flex justify-between items-start">
+                  <div>
+                    <div className="flex items-center space-x-2 mb-1">
+                      {data.complaintLevel === 'high' && <i className="fas fa-exclamation-triangle text-red-500"></i>}
+                      <h4 className="font-extrabold text-slate-800 text-[15px]">{data.area}</h4>
+                    </div>
+                    <p className="text-[12px] font-bold text-slate-400">{data.type}</p>
+                  </div>
+                  <span className={`text-[11px] font-extrabold px-2.5 py-1 rounded-lg ${
+                    data.complaintLevel === 'high' ? 'bg-red-50 text-red-600' : 
+                    data.complaintLevel === 'medium' ? 'bg-orange-50 text-orange-600' : 'bg-emerald-50 text-emerald-600'
+                  }`}>
+                    {data.complaintLevel === 'high' ? '혼잡' : data.complaintLevel === 'medium' ? '주의' : '원활'}
+                  </span>
+                </div>
+
+                <div className="mt-1">
+                  <div className="flex justify-between text-[10px] font-bold text-slate-400 mb-1.5">
+                    <span>예측 수요율</span>
+                    <span>{data.demand}%</span>
+                  </div>
+                  <div className="h-2.5 w-full bg-slate-100 rounded-full overflow-hidden">
+                    <div 
+                      className={`h-full rounded-full transition-all duration-1000 ${
+                        data.complaintLevel === 'high' ? 'bg-gradient-to-r from-red-400 to-red-500' : 
+                        data.complaintLevel === 'medium' ? 'bg-gradient-to-r from-orange-400 to-orange-500' : 'bg-gradient-to-r from-emerald-400 to-emerald-500'
+                      }`}
+                      style={{ width: `${data.demand}%` }}
+                    />
+                  </div>
+                </div>
+                
+                {data.complaintLevel === 'high' && (
+                  <div className="mt-2 text-[12px] bg-slate-50 p-3 rounded-xl text-slate-600 font-medium flex items-start">
+                    <span className="mr-2">💡</span> 
+                    <span>인근 <strong>도곡초교 공영주차장</strong>에 현재 15면 여유가 있습니다.</span>
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      );
+
+      const renderTabApply = () => (
+        <div className="space-y-6">
+          <div className="bg-gradient-to-br from-blue-600 via-indigo-600 to-blue-800 p-6 rounded-[2rem] text-white shadow-[0_10px_30px_rgba(37,99,235,0.2)] relative overflow-hidden">
+            <div className="absolute right-0 bottom-0 opacity-20 transform translate-x-1/4 translate-y-1/4">
+              <i className="fas fa-car text-[10rem]"></i>
+            </div>
+            <span className="inline-block px-3 py-1 bg-white/20 backdrop-blur-md rounded-full text-[11px] font-extrabold tracking-wide mb-3">
+              2026년 5월 확대 시행!
+            </span>
+            <h2 className="text-2xl font-black mb-2">우리동네<br/>월정기주차</h2>
+            <p className="text-[13px] text-blue-100 mb-6 font-medium leading-relaxed max-w-[80%]">강남구 거주자 및 상인분들을 위한<br/>저렴하고 안정적인 주차 공간.</p>
+            <button className="bg-white text-blue-700 font-extrabold text-[14px] px-5 py-3.5 rounded-xl shadow-sm hover:scale-[1.02] transition-transform w-full flex justify-center items-center">
+              신청 가능 여부 조회 <i className="fas fa-chevron-right ml-2 text-xs"></i>
+            </button>
+          </div>
+
+          <div>
+            <h3 className="text-lg font-extrabold text-slate-800 mb-4 px-1">자주 찾는 민원 서비스</h3>
+            <div className="grid grid-cols-2 gap-3 pb-4">
+              <div className="bg-white p-5 rounded-[1.5rem] shadow-[0_2px_15px_rgb(0,0,0,0.03)] border border-slate-100 flex flex-col items-center text-center cursor-pointer hover:border-blue-400 hover:shadow-md transition-all group">
+                <div className="bg-blue-50 w-14 h-14 rounded-2xl flex items-center justify-center mb-3 group-hover:bg-blue-600 transition-colors">
+                  <i className="fas fa-map-marker-alt text-blue-600 text-xl group-hover:text-white transition-colors"></i>
+                </div>
+                <span className="text-[14px] font-extrabold text-slate-800">거주자우선주차</span>
+                <span className="text-[11px] text-slate-400 mt-1 font-bold">신청 및 배점 확인</span>
+              </div>
+              
+              <div className="bg-white p-5 rounded-[1.5rem] shadow-[0_2px_15px_rgb(0,0,0,0.03)] border border-slate-100 flex flex-col items-center text-center cursor-pointer hover:border-blue-400 hover:shadow-md transition-all group">
+                <div className="bg-emerald-50 w-14 h-14 rounded-2xl flex items-center justify-center mb-3 group-hover:bg-emerald-500 transition-colors">
+                  <i className="far fa-clock text-emerald-600 text-xl group-hover:text-white transition-colors"></i>
+                </div>
+                <span className="text-[14px] font-extrabold text-slate-800">시간제 주차권</span>
+                <span className="text-[11px] text-slate-400 mt-1 font-bold">방문차량 등록</span>
+              </div>
+              
+              <div className="bg-white p-5 rounded-[1.5rem] shadow-[0_2px_15px_rgb(0,0,0,0.03)] border border-slate-100 flex flex-col items-center text-center cursor-pointer hover:border-blue-400 hover:shadow-md transition-all group">
+                <div className="bg-red-50 w-14 h-14 rounded-2xl flex items-center justify-center mb-3 group-hover:bg-red-500 transition-colors">
+                  <i className="fas fa-exclamation-triangle text-red-600 text-xl group-hover:text-white transition-colors"></i>
+                </div>
+                <span className="text-[14px] font-extrabold text-slate-800">불법주정차 신고</span>
+                <span className="text-[11px] text-slate-400 mt-1 font-bold">실시간 민원 접수</span>
+              </div>
+
+              <div className="bg-white p-5 rounded-[1.5rem] shadow-[0_2px_15px_rgb(0,0,0,0.03)] border border-slate-100 flex flex-col items-center text-center cursor-pointer hover:border-blue-400 hover:shadow-md transition-all group">
+                <div className="bg-indigo-50 w-14 h-14 rounded-2xl flex items-center justify-center mb-3 group-hover:bg-indigo-600 transition-colors">
+                  <i className="fas fa-car-side text-indigo-600 text-xl group-hover:text-white transition-colors"></i>
+                </div>
+                <span className="text-[14px] font-extrabold text-slate-800">주차구역 공유</span>
+                <span className="text-[11px] text-slate-400 mt-1 font-bold">부수입 창출하기</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      );
+
+      return (
+        <div className="min-h-screen pb-24">
+          {renderHeader()}
+          <main className="max-w-md mx-auto sm:max-w-2xl lg:max-w-4xl p-5 relative">
+            {/* 탭 이동 시 삭제하지 않고 화면 뒤로 숨김 (CSS 클래스로 조절) */}
+            <div className={`animate-in fade-in duration-300 ${activeTab === 'find' ? 'block' : 'hidden'}`}>
+              {renderTabFindParking()}
+            </div>
+            <div className={`animate-in fade-in duration-300 ${activeTab === 'heatmap' ? 'block' : 'hidden'}`}>
+              {renderTabHeatmap()}
+            </div>
+            <div className={`animate-in fade-in duration-300 ${activeTab === 'apply' ? 'block' : 'hidden'}`}>
+              {renderTabApply()}
+            </div>
+          </main>
+          {renderBottomNav()}
+        </div>
+      );
+    }
+
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(<App />);
+  </script>
 </body>
 </html>
