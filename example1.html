@@ -1,0 +1,371 @@
+import React, { useState, useEffect, useRef } from 'react';
+import { 
+  Map as MapIcon, 
+  BarChart3, 
+  ClipboardList, 
+  Car, 
+  MapPin, 
+  AlertTriangle, 
+  Clock, 
+  Navigation,
+  CheckCircle2,
+  Info,
+  Search
+} from 'lucide-react';
+
+// --- Mock Data ---
+const PARKING_SPOTS = [
+  { id: 1, name: '역삼1동 공영주차장', type: '공영', available: 12, total: 50, price: '300원/10분', distance: '250m', lat: 37.5000, lng: 127.0350, recommendFor: ['visitor', 'merchant'] },
+  { id: 2, name: '논현로 노상 주차장', type: '노상', available: 3, total: 20, price: '500원/10분', distance: '400m', lat: 37.5111, lng: 127.0286, recommendFor: ['visitor'] },
+  { id: 3, name: '대치동 거주자우선구역 A', type: '거주자', available: '신청가능', total: 100, price: '40,000원/월', distance: '150m', lat: 37.4950, lng: 127.0600, recommendFor: ['resident'] },
+  { id: 4, name: '강남역 환승 주차장', type: '공영', available: 45, total: 200, price: '200원/10분', distance: '800m', lat: 37.4979, lng: 127.0276, recommendFor: ['visitor', 'merchant'] },
+];
+
+const HEATMAP_DATA = [
+  { id: 1, area: '강남역 11번 출구 이면도로', complaintLevel: 'high', type: '불법주정차', demand: 95 },
+  { id: 2, area: '논현동 먹자골목', complaintLevel: 'high', type: '야간주차난', demand: 88 },
+  { id: 3, area: '역삼동 주택가', complaintLevel: 'medium', type: '거주자구역 무단주차', demand: 70 },
+  { id: 4, area: '양재천 카페거리', complaintLevel: 'low', type: '주말만차', demand: 45 },
+];
+
+export default function App() {
+  const [activeTab, setActiveTab] = useState('find'); // 'find', 'heatmap', 'apply'
+  const [userType, setUserType] = useState('visitor'); // 'visitor', 'resident', 'merchant'
+
+  const mapRef = useRef(null);
+  const mapInstance = useRef(null);
+  const [mapLoaded, setMapLoaded] = useState(false);
+
+  // 오픈스트리트맵(Leaflet) API 동적 로드
+  useEffect(() => {
+    if (!document.getElementById('leaflet-css')) {
+      const link = document.createElement('link');
+      link.id = 'leaflet-css';
+      link.rel = 'stylesheet';
+      link.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
+      document.head.appendChild(link);
+    }
+    if (!document.getElementById('leaflet-js')) {
+      const script = document.createElement('script');
+      script.id = 'leaflet-js';
+      script.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
+      script.onload = () => setMapLoaded(true);
+      document.head.appendChild(script);
+    } else {
+      setMapLoaded(true);
+    }
+  }, []);
+
+  // 지도 초기화 및 마커 렌더링
+  useEffect(() => {
+    if (!mapLoaded || !mapRef.current || activeTab !== 'find') return;
+
+    // 컨테이너가 변경된 경우 기존 지도 인스턴스 파괴 (탭 전환 시 꼬임 방지)
+    if (mapInstance.current && mapInstance.current._container !== mapRef.current) {
+      mapInstance.current.remove();
+      mapInstance.current = null;
+    }
+
+    // 지도 첫 생성 시
+    if (!mapInstance.current) {
+      mapInstance.current = window.L.map(mapRef.current).setView([37.4979, 127.0276], 14); // 강남역 중심
+      window.L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+      }).addTo(mapInstance.current);
+    }
+
+    // 기존 마커 초기화
+    mapInstance.current.eachLayer((layer) => {
+      if (layer instanceof window.L.CircleMarker) {
+        mapInstance.current.removeLayer(layer);
+      }
+    });
+
+    // 현재 선택된 사용자 대상 추천 주차장만 마커로 표시
+    PARKING_SPOTS.filter(s => s.recommendFor.includes(userType)).forEach(spot => {
+      const isResident = spot.type === '거주자';
+      const markerColor = isResident ? '#9333ea' : '#2563eb'; // 거주자는 보라색, 나머지는 파란색
+      const fillColor = isResident ? '#a855f7' : '#3b82f6';
+      
+      const marker = window.L.circleMarker([spot.lat, spot.lng], {
+        color: markerColor,
+        fillColor: fillColor,
+        fillOpacity: 0.8,
+        radius: 12
+      }).addTo(mapInstance.current);
+
+      marker.bindPopup(`
+        <div style="text-align: center; min-width: 100px; font-family: sans-serif;">
+          <strong style="font-size: 14px; color: #1f2937;">${spot.name}</strong><br/>
+          <div style="margin-top: 4px;">
+            <span style="color: ${markerColor}; font-weight: 800; font-size: 16px;">${spot.available}</span>
+            <span style="font-size: 12px; color: #4b5563;">${typeof spot.available === 'number' ? '자리 남음' : ''}</span>
+          </div>
+          <div style="font-size: 12px; color: #6b7280; margin-top: 2px;">${spot.price}</div>
+        </div>
+      `);
+    });
+    
+    setTimeout(() => {
+      if (mapInstance.current) mapInstance.current.invalidateSize();
+    }, 100);
+  }, [mapLoaded, userType, activeTab]);
+
+  // --- Components ---
+  const Header = () => (
+    <header className="bg-blue-600 text-white shadow-md sticky top-0 z-[1000]">
+      <div className="max-w-md mx-auto sm:max-w-2xl lg:max-w-4xl px-4 py-4 flex items-center justify-between">
+        <div className="flex items-center space-x-2">
+          <Car className="w-6 h-6" />
+          <h1 className="text-xl font-bold tracking-tight">강남 파킹프리</h1>
+        </div>
+        <div className="text-xs bg-blue-700 px-3 py-1 rounded-full flex items-center">
+          <AlertTriangle className="w-3 h-3 mr-1 text-yellow-300" />
+          주차민원콜센터 24시간 운영
+        </div>
+      </div>
+      
+      {/* Navigation Tabs */}
+      <div className="max-w-md mx-auto sm:max-w-2xl lg:max-w-4xl flex bg-blue-700/50">
+        <button 
+          onClick={() => setActiveTab('find')}
+          className={`flex-1 py-3 text-sm font-medium flex justify-center items-center ${activeTab === 'find' ? 'bg-white text-blue-600 border-t-2 border-blue-600' : 'text-blue-100 hover:bg-blue-600'}`}
+        >
+          <MapIcon className="w-4 h-4 mr-2" /> 주차장 찾기
+        </button>
+        <button 
+          onClick={() => setActiveTab('heatmap')}
+          className={`flex-1 py-3 text-sm font-medium flex justify-center items-center ${activeTab === 'heatmap' ? 'bg-white text-blue-600 border-t-2 border-blue-600' : 'text-blue-100 hover:bg-blue-600'}`}
+        >
+          <BarChart3 className="w-4 h-4 mr-2" /> 수요/민원 예측
+        </button>
+        <button 
+          onClick={() => setActiveTab('apply')}
+          className={`flex-1 py-3 text-sm font-medium flex justify-center items-center ${activeTab === 'apply' ? 'bg-white text-blue-600 border-t-2 border-blue-600' : 'text-blue-100 hover:bg-blue-600'}`}
+        >
+          <ClipboardList className="w-4 h-4 mr-2" /> 정기주차 신청
+        </button>
+      </div>
+    </header>
+  );
+
+  const TabFindParking = () => (
+    <div className="animate-in fade-in slide-in-from-bottom-4 duration-300">
+      {/* User Persona Selector */}
+      <div className="bg-white p-4 rounded-xl shadow-sm mb-4">
+        <h2 className="text-sm font-semibold text-gray-700 mb-3 flex items-center">
+          <Info className="w-4 h-4 mr-1 text-blue-500" /> 방문 목적에 맞는 맞춤형 추천을 받아보세요.
+        </h2>
+        <div className="flex space-x-2">
+          {['visitor', 'resident', 'merchant'].map((type) => (
+            <button
+              key={type}
+              onClick={() => setUserType(type)}
+              className={`flex-1 py-2 text-sm font-medium rounded-lg border transition-all ${
+                userType === type 
+                  ? 'bg-blue-50 border-blue-500 text-blue-700 ring-1 ring-blue-500' 
+                  : 'bg-white border-gray-200 text-gray-600 hover:bg-gray-50'
+              }`}
+            >
+              {type === 'visitor' ? '방문객' : type === 'resident' ? '거주자' : '상인/직장인'}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Real Map Area */}
+      <div className="relative bg-gray-200 rounded-xl h-64 mb-4 overflow-hidden border border-gray-300 shadow-inner z-0">
+        {!mapLoaded && (
+          <div className="absolute inset-0 flex flex-col items-center justify-center bg-gray-100 z-10">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mb-2"></div>
+            <span className="text-sm text-gray-500 font-medium">실제 지도 API 연동 중...</span>
+          </div>
+        )}
+        {/* 실제 지도가 그려질 영역 */}
+        <div ref={mapRef} className="absolute inset-0 z-0"></div>
+      </div>
+
+      {/* Recommended List */}
+      <div className="space-y-3">
+        <div className="flex justify-between items-end mb-2 px-1">
+          <h3 className="font-bold text-gray-800">지금 주차하기 좋은 곳 (추천순)</h3>
+          <span className="text-xs text-gray-500 flex items-center"><Clock className="w-3 h-3 mr-1"/>실시간 정보</span>
+        </div>
+        
+        {PARKING_SPOTS.filter(spot => spot.recommendFor.includes(userType)).map((spot) => (
+          <div 
+            key={spot.id} 
+            onClick={() => {
+              if (mapInstance.current) {
+                // 해당 좌표로 지도 부드럽게 이동 및 줌인
+                mapInstance.current.flyTo([spot.lat, spot.lng], 16, {
+                  animate: true,
+                  duration: 0.8
+                });
+                // 지도가 있는 화면 상단으로 부드럽게 스크롤
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+              }
+            }}
+            className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex justify-between items-center hover:border-blue-300 transition-colors cursor-pointer"
+          >
+            <div className="flex-1">
+              <div className="flex items-center space-x-2 mb-1">
+                <span className={`text-xs px-2 py-0.5 rounded ${spot.type === '공영' ? 'bg-green-100 text-green-700' : 'bg-purple-100 text-purple-700'}`}>
+                  {spot.type}
+                </span>
+                <h4 className="font-bold text-gray-900">{spot.name}</h4>
+              </div>
+              <div className="text-sm text-gray-500 flex items-center mt-2">
+                <Navigation className="w-3 h-3 mr-1" /> 내 위치에서 {spot.distance}
+                <span className="mx-2">|</span>
+                <span className="font-medium text-gray-700">{spot.price}</span>
+              </div>
+            </div>
+            <div className="text-right flex flex-col items-end">
+              <div className="text-2xl font-black text-blue-600">
+                {typeof spot.available === 'number' ? `${spot.available}` : spot.available}
+                {typeof spot.available === 'number' && <span className="text-sm font-medium text-gray-500">/{spot.total}</span>}
+              </div>
+              <button className="mt-2 text-xs bg-gray-100 hover:bg-blue-100 hover:text-blue-700 text-gray-700 px-3 py-1.5 rounded-lg transition-colors font-medium">
+                길안내
+              </button>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+
+  const TabHeatmap = () => (
+    <div className="animate-in fade-in slide-in-from-bottom-4 duration-300">
+      <div className="bg-blue-50 border border-blue-100 p-4 rounded-xl mb-6">
+        <h2 className="text-lg font-bold text-blue-900 mb-1">데이터로 보는 강남구 주차지도</h2>
+        <p className="text-sm text-blue-700">시간대별 주차 수요와 민원 다발 구역을 시각화하여 정보 비대칭을 해소합니다.</p>
+      </div>
+
+      {/* Heatmap controls */}
+      <div className="flex justify-between items-center mb-4 px-1">
+        <h3 className="font-bold text-gray-800">현재 민원/수요 히트맵</h3>
+        <select className="text-sm border border-gray-300 rounded-lg px-2 py-1 bg-white">
+          <option>실시간 (현재)</option>
+          <option>오늘 야간 (20:00~)</option>
+          <option>주말 (토~일)</option>
+        </select>
+      </div>
+
+      {/* Heatmap List (Alternative to Map view) */}
+      <div className="space-y-4">
+        {HEATMAP_DATA.map((data) => (
+          <div key={data.id} className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 relative overflow-hidden">
+            {/* Background Demand Bar */}
+            <div 
+              className={`absolute top-0 right-0 bottom-0 opacity-10 ${
+                data.complaintLevel === 'high' ? 'bg-red-500' : 
+                data.complaintLevel === 'medium' ? 'bg-yellow-500' : 'bg-green-500'
+              }`}
+              style={{ width: `${data.demand}%` }}
+            />
+            
+            <div className="relative z-10 flex justify-between items-center">
+              <div>
+                <div className="flex items-center space-x-2 mb-1">
+                  {data.complaintLevel === 'high' && <AlertTriangle className="w-4 h-4 text-red-500" />}
+                  <h4 className="font-bold text-gray-900">{data.area}</h4>
+                </div>
+                <p className="text-sm text-gray-500">주요 원인: {data.type}</p>
+              </div>
+              <div className="text-right">
+                <span className={`text-xs font-bold px-2 py-1 rounded-full ${
+                  data.complaintLevel === 'high' ? 'bg-red-100 text-red-700' : 
+                  data.complaintLevel === 'medium' ? 'bg-yellow-100 text-yellow-700' : 'bg-green-100 text-green-700'
+                }`}>
+                  {data.complaintLevel === 'high' ? '혼잡/민원다발' : data.complaintLevel === 'medium' ? '주의' : '원활'}
+                </span>
+                <div className="text-xs text-gray-400 mt-1">예측 수요: {data.demand}%</div>
+              </div>
+            </div>
+            
+            {/* Alternative suggestion for high demand areas */}
+            {data.complaintLevel === 'high' && (
+              <div className="mt-3 text-xs bg-gray-50 p-2 rounded text-gray-600 border border-gray-200">
+                💡 <strong>대안:</strong> 인근 '도곡초교 공영주차장'에 현재 15면 여유가 있습니다.
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+
+  const TabApply = () => (
+    <div className="animate-in fade-in slide-in-from-bottom-4 duration-300">
+      
+      {/* 2026 Policy Notice */}
+      <div className="bg-gradient-to-r from-blue-600 to-blue-800 p-5 rounded-2xl mb-6 text-white shadow-lg relative overflow-hidden">
+        <div className="absolute top-0 right-0 -mr-4 -mt-4 opacity-20">
+          <CheckCircle2 className="w-24 h-24" />
+        </div>
+        <span className="inline-block px-2 py-1 bg-blue-500/50 rounded text-xs font-bold mb-2">2026년 5월 확대 시행!</span>
+        <h2 className="text-xl font-bold mb-2">우리동네 월정기주차</h2>
+        <p className="text-sm text-blue-100 mb-4">강남구 거주자 및 상인분들을 위한 저렴하고 안정적인 주차 공간을 지금 신청하세요.</p>
+        <button className="bg-white text-blue-700 font-bold text-sm px-4 py-2 rounded-lg shadow hover:bg-gray-50 transition-colors w-full">
+          신청 가능 여부 조회하기
+        </button>
+      </div>
+
+      <h3 className="font-bold text-gray-800 mb-3 px-1">자주 찾는 민원 서비스</h3>
+      
+      <div className="grid grid-cols-2 gap-3 mb-6">
+        <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex flex-col items-center text-center cursor-pointer hover:border-blue-400 transition-colors">
+          <div className="bg-blue-50 w-12 h-12 rounded-full flex items-center justify-center mb-2">
+            <Car className="text-blue-600 w-6 h-6" />
+          </div>
+          <span className="text-sm font-bold text-gray-800">거주자우선주차</span>
+          <span className="text-xs text-gray-500 mt-1">신청 및 배점 확인</span>
+        </div>
+        
+        <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex flex-col items-center text-center cursor-pointer hover:border-blue-400 transition-colors">
+          <div className="bg-green-50 w-12 h-12 rounded-full flex items-center justify-center mb-2">
+            <Clock className="text-green-600 w-6 h-6" />
+          </div>
+          <span className="text-sm font-bold text-gray-800">시간제 주차권</span>
+          <span className="text-xs text-gray-500 mt-1">방문차량 등록</span>
+        </div>
+        
+        <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex flex-col items-center text-center cursor-pointer hover:border-blue-400 transition-colors">
+          <div className="bg-red-50 w-12 h-12 rounded-full flex items-center justify-center mb-2">
+            <AlertTriangle className="text-red-600 w-6 h-6" />
+          </div>
+          <span className="text-sm font-bold text-gray-800">불법주정차 신고</span>
+          <span className="text-xs text-gray-500 mt-1">실시간 민원 접수</span>
+        </div>
+
+        <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex flex-col items-center text-center cursor-pointer hover:border-blue-400 transition-colors">
+          <div className="bg-purple-50 w-12 h-12 rounded-full flex items-center justify-center mb-2">
+            <MapPin className="text-purple-600 w-6 h-6" />
+          </div>
+          <span className="text-sm font-bold text-gray-800">내 주차구역 공유</span>
+          <span className="text-xs text-gray-500 mt-1">부수입 창출하기</span>
+        </div>
+      </div>
+
+    </div>
+  );
+
+  return (
+    <div className="min-h-screen bg-gray-50 font-sans text-gray-900 pb-10">
+      <Header />
+      
+      <main className="max-w-md mx-auto sm:max-w-2xl lg:max-w-4xl p-4">
+        {activeTab === 'find' && <TabFindParking />}
+        {activeTab === 'heatmap' && <TabHeatmap />}
+        {activeTab === 'apply' && <TabApply />}
+      </main>
+
+      {/* Floating Action Button for Help */}
+      <button className="fixed bottom-6 right-6 bg-blue-800 text-white p-4 rounded-full shadow-xl hover:bg-blue-900 transition-colors z-50">
+        <Search className="w-6 h-6" />
+      </button>
+    </div>
+  );
+}

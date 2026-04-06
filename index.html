@@ -4,13 +4,475 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>TMD Hackathon</title>
+  <style>
+    :root {
+      --bg: #f6f8fc;
+      --card: rgba(255, 255, 255, 0.9);
+      --text: #1f2937;
+      --sub: #6b7280;
+      --line: #e5e7eb;
+      --blue: #2563eb;
+      --blue-soft: #eff6ff;
+      --green: #059669;
+      --green-soft: #ecfdf5;
+      --orange: #ea580c;
+      --orange-soft: #fff7ed;
+      --shadow: 0 16px 40px rgba(15, 23, 42, 0.08);
+      --radius: 22px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: "Pretendard", "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at top left, rgba(37, 99, 235, 0.08), transparent 30%),
+        radial-gradient(circle at top right, rgba(5, 150, 105, 0.07), transparent 25%),
+        linear-gradient(180deg, #f9fbff 0%, #f4f7fb 100%);
+      line-height: 1.6;
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    .wrap {
+      max-width: 1240px;
+      margin: 0 auto;
+      padding: 40px 20px 80px;
+    }
+
+    .hero {
+      background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 55%, #2563eb 100%);
+      color: white;
+      padding: 42px;
+      border-radius: 30px;
+      box-shadow: 0 24px 50px rgba(30, 58, 138, 0.24);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero::after {
+      content: "";
+      position: absolute;
+      top: -80px;
+      right: -80px;
+      width: 220px;
+      height: 220px;
+      background: rgba(255, 255, 255, 0.08);
+      border-radius: 50%;
+    }
+
+    .hero-badge {
+      display: inline-block;
+      padding: 8px 14px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.14);
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      font-size: 14px;
+      font-weight: 700;
+      margin-bottom: 18px;
+      backdrop-filter: blur(8px);
+    }
+
+    .hero h1 {
+      margin: 0 0 12px;
+      font-size: clamp(32px, 5vw, 52px);
+      line-height: 1.12;
+      letter-spacing: -0.02em;
+    }
+
+    .hero p {
+      margin: 0;
+      max-width: 760px;
+      color: rgba(255, 255, 255, 0.88);
+      font-size: 17px;
+    }
+
+    .section-head {
+      margin: 38px 0 18px;
+      display: flex;
+      justify-content: space-between;
+      align-items: end;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .section-head h2 {
+      margin: 0;
+      font-size: 28px;
+      letter-spacing: -0.02em;
+    }
+
+    .section-head p {
+      margin: 0;
+      color: var(--sub);
+      font-size: 15px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 22px;
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid rgba(255, 255, 255, 0.9);
+      border-radius: var(--radius);
+      padding: 26px;
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(10px);
+      transition: transform 0.25s ease, box-shadow 0.25s ease;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .card:hover {
+      transform: translateY(-6px);
+      box-shadow: 0 24px 44px rgba(15, 23, 42, 0.12);
+    }
+
+    .card.blue { border-top: 6px solid var(--blue); }
+    .card.green { border-top: 6px solid var(--green); }
+    .card.orange { border-top: 6px solid var(--orange); }
+
+    .topline {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 7px 12px;
+      border-radius: 999px;
+      font-size: 13px;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    .chip.blue {
+      background: var(--blue-soft);
+      color: var(--blue);
+    }
+
+    .chip.green {
+      background: var(--green-soft);
+      color: var(--green);
+    }
+
+    .chip.orange {
+      background: var(--orange-soft);
+      color: var(--orange);
+    }
+
+    .example-no {
+      font-size: 13px;
+      color: var(--sub);
+      font-weight: 700;
+    }
+
+    .card h3 {
+      margin: 0 0 14px;
+      font-size: 26px;
+      line-height: 1.25;
+      letter-spacing: -0.02em;
+    }
+
+    .one-line {
+      margin: 0 0 18px;
+      padding: 14px 16px;
+      border-radius: 16px;
+      background: #f8fafc;
+      border: 1px solid var(--line);
+      font-weight: 700;
+      font-size: 15px;
+    }
+
+    .block {
+      margin-top: 18px;
+      padding-top: 18px;
+      border-top: 1px solid var(--line);
+    }
+
+    .block:first-of-type {
+      margin-top: 0;
+      padding-top: 0;
+      border-top: none;
+    }
+
+    .block-title {
+      margin: 0 0 8px;
+      font-size: 15px;
+      font-weight: 800;
+      color: #111827;
+    }
+
+    .problem {
+      margin: 0;
+      color: #374151;
+      font-size: 15px;
+    }
+
+    ul {
+      margin: 0;
+      padding-left: 18px;
+      color: #374151;
+      font-size: 15px;
+    }
+
+    li + li {
+      margin-top: 6px;
+    }
+
+    .actions {
+      display: flex;
+      gap: 10px;
+      margin-top: 24px;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 44px;
+      padding: 0 16px;
+      border-radius: 12px;
+      font-weight: 700;
+      font-size: 14px;
+      transition: all 0.2s ease;
+    }
+
+    .btn.primary {
+      background: #111827;
+      color: white;
+    }
+
+    .btn.primary:hover {
+      background: #0b1220;
+    }
+
+    .btn.ghost {
+      background: #f3f4f6;
+      color: #111827;
+      border: 1px solid #e5e7eb;
+    }
+
+    .btn.ghost:hover {
+      background: #e5e7eb;
+    }
+
+    .footer-note {
+      margin-top: 26px;
+      text-align: center;
+      color: var(--sub);
+      font-size: 14px;
+    }
+
+    @media (max-width: 1024px) {
+      .grid {
+        grid-template-columns: 1fr;
+      }
+
+      .hero {
+        padding: 32px 24px;
+      }
+
+      .card h3 {
+        font-size: 24px;
+      }
+    }
+
+    @media (max-width: 640px) {
+      .wrap {
+        padding: 20px 14px 50px;
+      }
+
+      .hero h1 {
+        font-size: 34px;
+      }
+
+      .hero p {
+        font-size: 15px;
+      }
+
+      .section-head h2 {
+        font-size: 22px;
+      }
+
+      .card {
+        padding: 20px;
+      }
+    }
+  </style>
 </head>
 <body>
-  <h1>TMD Hackathon</h1>
-  <ul>
-    <li><a href="./example1.html">예시 1</a></li>
-    <li><a href="./example2.html">예시 2</a></li>
-    <li><a href="./example3.html">예시 3</a></li>
-  </ul>
+  <div class="wrap">
+    <section class="hero">
+      <div class="hero-badge">TMD Hackathon · 강남구 문제 해결 아이디어</div>
+      <h1>지역의 불편을, <br>아이디어로 바꿔보는 해커톤</h1>
+      <p>
+        강남구 안에서 실제로 체감할 수 있는 문제를 주제로,
+        생활밀착형 서비스와 데이터 기반 해결책을 상상해보는 예시입니다.
+        아래 3가지 주제는 해커톤 문제 정의와 결과물 구상에 바로 활용할 수 있습니다.
+      </p>
+    </section>
+
+    <div class="section-head">
+      <div>
+        <h2>해커톤 주제 예시</h2>
+        <p>문제 · 아이디어 · 결과물 · 한 줄 정의가 한눈에 보이도록 구성했습니다.</p>
+      </div>
+    </div>
+
+    <section class="grid">
+      <article class="card blue">
+        <div class="topline">
+          <span class="chip blue">🚗 생활 교통</span>
+          <span class="example-no">예시 1</span>
+        </div>
+
+        <h3>주차 스트레스 줄이기</h3>
+
+        <p class="one-line">
+          “강남의 주차 불편을 정보 비대칭 없이 줄일 수 있을까?”
+        </p>
+
+        <div class="block">
+          <h4 class="block-title">문제</h4>
+          <p class="problem">
+            강남구는 ‘우리동네 월정기주차’를 확대 시행하고, 주차민원콜센터도 24시간 운영할 만큼
+            주차 문제가 생활형 민원으로 이어지고 있습니다.
+          </p>
+        </div>
+
+        <div class="block">
+          <h4 class="block-title">아이디어 예시</h4>
+          <ul>
+            <li>동네별 주차 수요 예측</li>
+            <li>시간대별 빈 주차면 추천</li>
+            <li>거주자우선주차·월정기주차 신청 도우미</li>
+            <li>주차 민원 다발 구역 시각화</li>
+          </ul>
+        </div>
+
+        <div class="block">
+          <h4 class="block-title">결과물 예시</h4>
+          <ul>
+            <li>“내 주변 지금 주차 쉬운 곳” 앱</li>
+            <li>민원 히트맵</li>
+            <li>주민·상인·방문객 유형별 주차 추천 서비스</li>
+          </ul>
+        </div>
+
+        <div class="actions">
+          <a class="btn primary" href="./example1.html">예시 1 보기</a>
+        </div>
+      </article>
+
+      <article class="card green">
+        <div class="topline">
+          <span class="chip green">🌍 관광 · 안내</span>
+          <span class="example-no">예시 2</span>
+        </div>
+
+        <h3>외국인·관광객이 덜 헤매는 강남</h3>
+
+        <p class="one-line">
+          “강남을 처음 오는 사람도 쉽게 움직일 수 있게 만들기”
+        </p>
+
+        <div class="block">
+          <h4 class="block-title">문제</h4>
+          <p class="problem">
+            강남구는 외국인 관광객을 고려한 다국어·지도 기반 관광 플랫폼을 강화하고,
+            강남페스티벌과 연계한 K-뷰티 행사도 추진하고 있습니다.
+          </p>
+        </div>
+
+        <div class="block">
+          <h4 class="block-title">아이디어 예시</h4>
+          <ul>
+            <li>코엑스·압구정·가로수길 방문객용 다국어 동선 추천</li>
+            <li>“지금 여기서 할 수 있는 것” 실시간 관광 플래너</li>
+            <li>외국인 대상 병원·약국·교통·쇼핑 안내</li>
+            <li>관광객 혼잡 분산 서비스</li>
+          </ul>
+        </div>
+
+        <div class="block">
+          <h4 class="block-title">결과물 예시</h4>
+          <ul>
+            <li>다국어 웹앱</li>
+            <li>관광 동선 AI 추천 서비스</li>
+            <li>QR 기반 거리 안내 서비스</li>
+          </ul>
+        </div>
+
+        <div class="actions">
+          <a class="btn primary" href="./example2.html">예시 2 보기</a>
+        </div>
+      </article>
+
+      <article class="card orange">
+        <div class="topline">
+          <span class="chip orange">♻️ 친환경 · 탄소중립</span>
+          <span class="example-no">예시 3</span>
+        </div>
+
+        <h3>탄소중립·일회용품 줄이기</h3>
+
+        <p class="one-line">
+          “생활 속 작은 행동을 강남구 단위의 데이터로 연결하기”
+        </p>
+
+        <div class="block">
+          <h4 class="block-title">문제</h4>
+          <p class="problem">
+            강남구는 종이 없는 스마트 회의, 청사 내 다회용컵 운영 등
+            탄소중립 실천을 생활 속에서 확대하고 있습니다.
+          </p>
+        </div>
+
+        <div class="block">
+          <h4 class="block-title">아이디어 예시</h4>
+          <ul>
+            <li>카페 다회용컵 리워드 지도</li>
+            <li>행사장 쓰레기 분리배출 도우미</li>
+            <li>주민 참여형 탄소절감 챌린지 앱</li>
+            <li>“우리 동네 친환경 점포” 큐레이션 서비스</li>
+          </ul>
+        </div>
+
+        <div class="block">
+          <h4 class="block-title">결과물 예시</h4>
+          <ul>
+            <li>탄소 절감 리워드 앱</li>
+            <li>QR 분리배출 안내 서비스</li>
+            <li>행사 운영자용 친환경 체크리스트 툴</li>
+          </ul>
+        </div>
+
+        <div class="actions">
+          <a class="btn primary" href="./example3.html">예시 3 보기</a>
+        </div>
+      </article>
+    </section>
+
+    <p class="footer-note">
+      TMD Hackathon · Gangnam Local Problem Solving Examples
+    </p>
+  </div>
 </body>
 </html>
