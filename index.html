@@ -18,7 +18,7 @@
       --blue-main: #3b82f6;
       --blue-dark: #1d4ed8;
       
-      /* Theme: Green (Tourism) */
+      /* Theme: Green (Proposal) */
       --green-light: #f0fdf4;
       --green-mid: #bbf7d0;
       --green-main: #22c55e;
@@ -192,7 +192,6 @@
     .card.green .chip { background: var(--green-light); color: var(--green-dark); }
     .card.orange .chip { background: var(--orange-light); color: var(--orange-dark); }
 
-    
     .example-no {
       font-size: 14px;
       color: var(--text-muted);
@@ -202,29 +201,6 @@
       border-radius: 8px;
     }
     
-    .btn-group {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 10px;
-      margin-top: auto;
-      padding-top: 28px;
-    }
-
-    .btn.secondary {
-      background: #e0ecff;
-      color: var(--blue-dark);
-      border: 1px solid #bfdbfe;
-    }
-
-    .btn.secondary:hover {
-      background: #dbeafe;
-    }
-
-    @media (max-width: 640px) {
-      .btn-group {
-        grid-template-columns: 1fr;
-      }
-    }
     .card h3 {
       font-size: 24px;
       font-weight: 800;
@@ -322,12 +298,15 @@
       color: #475569;
     }
     
-    .card-footer {
+    /* Buttons */
+    .btn-group {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
       margin-top: auto;
       padding-top: 28px;
     }
 
-    /* Button */
     .btn {
       display: flex;
       align-items: center;
@@ -336,10 +315,12 @@
       padding: 14px;
       border-radius: 14px;
       font-weight: 700;
-      font-size: 16px;
+      font-size: 15px;
       transition: all 0.2s;
       cursor: pointer;
     }
+
+    /* Primary Buttons */
     .card.blue .btn { background: var(--blue-main); color: white; }
     .card.blue .btn:hover { background: var(--blue-dark); }
     
@@ -348,6 +329,64 @@
     
     .card.orange .btn { background: var(--orange-main); color: white; }
     .card.orange .btn:hover { background: var(--orange-dark); }
+
+    /* Proposal Banner */
+    .proposal-banner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: #ffffff;
+      border: 1px solid var(--border-color);
+      border-radius: 16px;
+      padding: 20px 24px;
+      margin-bottom: 48px;
+      box-shadow: inset 6px 0 0 0 #4f46e5, var(--shadow-default);
+      transition: all 0.2s ease;
+      text-decoration: none;
+      color: inherit;
+    }
+
+    .proposal-banner:hover {
+      transform: translateY(-2px);
+      box-shadow: inset 6px 0 0 0 #4f46e5, var(--shadow-hover);
+    }
+
+    .proposal-banner-left {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+
+    .proposal-icon {
+      width: 56px;
+      height: 56px;
+      background: #eef2ff;
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+    }
+
+    .proposal-text h3 {
+      font-size: 20px;
+      font-weight: 900;
+      color: #0f172a;
+      margin: 0 0 4px;
+      letter-spacing: 0.02em;
+    }
+
+    .proposal-text p {
+      font-size: 15px;
+      color: var(--text-muted);
+      margin: 0;
+    }
+
+    .proposal-arrow {
+      color: #4f46e5;
+      font-size: 24px;
+      font-weight: bold;
+    }
 
     .footer-note {
       text-align: center;
@@ -363,6 +402,12 @@
       .card-body { padding: 24px; }
       .section-head h2 { font-size: 26px; }
     }
+
+    @media (max-width: 640px) {
+      .btn-group {
+        grid-template-columns: 1fr;
+      }
+    }
   </style>
 </head>
 <body>
@@ -374,6 +419,18 @@
         강남구 안에서 실제로 체감할 수 있는 문제를 주제로,<br> 생활밀착형 서비스와 데이터 기반 해결책을 상상해보세요.
       </p>
     </section>
+
+    <!-- 신규 추가된 제안서 가로 배너 -->
+    <a href="./proposal.html" class="proposal-banner">
+      <div class="proposal-banner-left">
+        <div class="proposal-icon">📄</div>
+        <div class="proposal-text">
+          <h3>PROPOSAL</h3>
+          <p>해커톤 세부 운영 기획안 및 타임테이블 확인하기</p>
+        </div>
+      </div>
+      <div class="proposal-arrow">→</div>
+    </a>
 
     <div class="section-head">
       <h2>해커톤 주제 예시</h2>
@@ -419,14 +476,15 @@
               <span class="tag">👥 맞춤형 추천 봇</span>
             </div>
           </div>
+          
           <div class="btn-group">
             <a class="btn" href="./example1_1.html">웹 서비스 보기</a>
-            <a class="btn secondary" href="./example1_2.html">랜딩페이지 보기</a>
+            <a class="btn" href="./example1_2.html">랜딩페이지 보기</a>
           </div>
         </div>
       </article>
 
-      <!-- Card 2: Environment (기존 예시 3) -->
+      <!-- Card 2: Environment -->
       <article class="card orange">
         <div class="card-deco"></div>
         <div class="card-body">
@@ -467,7 +525,7 @@
 
           <div class="btn-group">
             <a class="btn" href="./example2_1.html">앱 서비스 보기</a>
-            <a class="btn secondary" href="./example2_2.html">발표자료 보기</a>
+            <a class="btn" href="./example2_2.html">발표자료 보기</a>
           </div>
         </div>
       </article>

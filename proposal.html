@@ -9,47 +9,54 @@
     
     <style>
         :root {
-            --primary-dark: #0f172a; /* Slate 900 - 고급스러운 진한 색 */
-            --primary-accent: #4f46e5; /* Indigo 600 - 포인트 컬러 */
-            --primary-light: #e0e7ff;
-            --bg-gradient: linear-gradient(135deg, #e2e8f0 0%, #cbd5e1 100%);
+            /* Professional & Trustworthy Palette */
+            --primary-dark: #1e1b4b; /* Indigo 950 */
+            --primary-main: #4338ca; /* Indigo 700 */
+            --primary-light: #e0e7ff; /* Indigo 100 */
+            --accent: #2563eb; /* Blue 600 */
+            --accent-light: #dbeafe; /* Blue 100 */
+            --bg-color: #f8fafc; /* Slate 50 */
             --surface-color: #ffffff;
-            --text-main: #334155;
-            --text-muted: #64748b;
-            --border-color: #e2e8f0;
-            --highlight-bg: #fffbeb;
-            --highlight-border: #f59e0b;
+            --text-main: #1e293b; /* Slate 800 */
+            --text-muted: #64748b; /* Slate 500 */
+            --border-color: #e2e8f0; /* Slate 200 */
+            --danger-light: #fee2e2;
+            --danger-text: #b91c1c;
+            --warning-light: #fef9c3;
+            --warning-text: #854d0e;
         }
 
         * {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
+            -webkit-font-smoothing: antialiased;
         }
 
         body {
             font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
             line-height: 1.6;
             color: var(--text-main);
-            background: var(--bg-gradient);
+            background-color: #e2e8f0; /* Background behind the presentation */
             height: 100vh;
             display: flex;
             align-items: center;
             justify-content: center;
             overflow: hidden;
-            font-size: 16px;
+            font-size: 18px; /* 발표 자료 기본 폰트 크기 확대 */
         }
 
+        /* 16:9 Presentation Format */
         .presentation-wrapper {
             position: relative;
-            width: 100%;
-            max-width: 1100px;
-            height: 90vh;
-            max-height: 800px;
-            background-color: var(--surface-color);
-            border-radius: 24px;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
-            overflow: hidden;
+            width: 95vw;
+            max-width: 1280px;
+            aspect-ratio: 16 / 9;
+            max-height: 90vh; /* 화면을 넘어가지 않도록 */
+            background-color: var(--bg-color);
+            border-radius: 20px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(0,0,0,0.05);
+            /* overflow-hidden 제거(버튼용) - 내부 slider에서 제어 */
         }
 
         .slider {
@@ -61,6 +68,8 @@
             scroll-behavior: smooth;
             -ms-overflow-style: none;
             scrollbar-width: none;
+            border-radius: 20px;
+            background-color: var(--bg-color);
         }
         
         .slider::-webkit-scrollbar {
@@ -72,114 +81,127 @@
             width: 100%;
             height: 100%;
             scroll-snap-align: start;
-            padding: 60px 80px;
+            padding: 70px 90px; /* 슬라이드 여백 대폭 확보 */
             overflow-y: auto;
-            display: block; /* flex에서 block으로 변경하여 스크롤 활성화 */
-            background-color: var(--surface-color);
+            display: flex;
+            flex-direction: column;
+            background-color: var(--bg-color);
+            position: relative;
         }
 
-        /* Cover Slide */
+        /* Slide Header/Title */
+        h2 {
+            color: var(--primary-dark);
+            font-size: 2.5rem;
+            font-weight: 800;
+            margin-top: 0;
+            margin-bottom: 40px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            letter-spacing: -0.02em;
+        }
+        
+        h2 span.icon {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 56px;
+            height: 56px;
+            background: var(--surface-color);
+            border-radius: 16px;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+            font-size: 2rem;
+        }
+
+        /* Cover Slide Special Styling */
         .slide-cover {
-            display: flex; /* 커버 슬라이드만 중앙 정렬을 위해 flex 유지 */
-            flex-direction: column;
             align-items: center;
             justify-content: center;
             text-align: center;
-            background: radial-gradient(circle at center, #ffffff 0%, #f8fafc 100%);
+            background: linear-gradient(135deg, #ffffff 0%, var(--bg-color) 100%);
+            padding-bottom: 120px; /* 하단 힌트를 위한 여백 */
         }
         .slide-cover .badge {
-            background-color: var(--primary-light);
-            color: var(--primary-accent);
-            padding: 8px 16px;
+            background-color: var(--primary-main);
+            color: white;
+            padding: 10px 24px;
             border-radius: 9999px;
-            font-weight: 700;
-            font-size: 1rem;
-            margin-bottom: 20px;
-            letter-spacing: 1px;
+            font-weight: 800;
+            font-size: 1.1rem;
+            margin-bottom: 24px;
+            letter-spacing: 2px;
+            box-shadow: 0 4px 14px rgba(67, 56, 202, 0.3);
         }
         .slide-cover h1 {
-            font-size: 3.5rem;
-            font-weight: 800;
+            font-size: 4.5rem;
+            font-weight: 900;
             color: var(--primary-dark);
-            margin-bottom: 16px;
+            margin-bottom: 20px;
             line-height: 1.2;
+            letter-spacing: -0.03em;
         }
         .slide-cover .subtitle {
-            font-size: 1.5rem;
+            font-size: 1.8rem;
             color: var(--text-muted);
             font-weight: 500;
-            margin-bottom: 40px;
+            margin-bottom: 60px;
         }
         .swipe-hint {
-            margin-top: 60px;
+            position: absolute;
+            bottom: 60px;
             color: var(--text-muted);
             display: flex;
             align-items: center;
-            gap: 10px;
-            font-weight: 500;
+            gap: 12px;
+            font-weight: 600;
+            font-size: 1.1rem;
             animation: pulse 2s infinite;
         }
 
         @keyframes pulse {
-            0%, 100% { opacity: 0.5; transform: translateX(0); }
-            50% { opacity: 1; transform: translateX(5px); }
+            0%, 100% { opacity: 0.6; transform: translateX(0); }
+            50% { opacity: 1; transform: translateX(8px); }
         }
 
-        /* Typography */
-        h2 {
-            color: var(--primary-dark);
-            font-size: 2.2rem;
-            font-weight: 800;
-            margin-top: 0;
-            margin-bottom: 30px;
+        /* Content Container */
+        .content-area {
+            flex: 1;
             display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-        
-        h2 span.icon {
-            font-size: 2.5rem;
+            flex-direction: column;
+            gap: 24px;
         }
 
-        h3 {
-            color: var(--primary-dark);
-            font-size: 1.3rem;
-            font-weight: 700;
-            margin-bottom: 15px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        /* Modern Tables */
-        .table-responsive {
-            width: 100%;
-            border-radius: 12px;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-            overflow-x: auto; /* hidden에서 auto로 변경하여 표 가로 스크롤 허용 */
-            margin-bottom: 20px;
+        /* Modern Tables - 발표용으로 큼직하고 깔끔하게 */
+        .table-wrapper {
+            background: var(--surface-color);
+            border-radius: 16px;
+            box-shadow: 0 10px 25px -5px rgba(0,0,0,0.05);
+            overflow: hidden;
+            border: 1px solid var(--border-color);
         }
 
         table {
             width: 100%;
             border-collapse: collapse;
-            background-color: white;
-            font-size: 1.05rem;
+            font-size: 1.2rem; /* 표 안의 글씨 크기 키움 */
         }
 
         th, td {
-            padding: 18px 20px;
+            padding: 24px 32px;
             text-align: left;
             vertical-align: top;
+            line-height: 1.5;
         }
 
         th {
-            background-color: var(--primary-dark);
-            color: white;
-            font-weight: 600;
-            text-align: center;
-            white-space: nowrap;
-            font-size: 1.1rem;
+            background-color: #f1f5f9;
+            color: var(--text-muted);
+            font-weight: 700;
+            text-transform: uppercase;
+            font-size: 1rem;
+            letter-spacing: 0.05em;
+            border-bottom: 2px solid var(--border-color);
         }
 
         tr {
@@ -189,169 +211,231 @@
             border-bottom: none;
         }
 
-        tr:hover td {
-            background-color: #f8fafc;
-        }
-
         td:first-child {
-            text-align: center;
-            font-weight: 700;
-            color: var(--primary-accent);
+            font-weight: 800;
+            color: var(--primary-main);
             white-space: nowrap;
-            background-color: #f8fafc;
-            width: 20%;
+            width: 25%;
+            background-color: var(--surface-color);
+            border-right: 1px solid var(--border-color);
         }
 
-        /* Lists */
+        /* List Styles inside Table & Cards */
         ul {
-            list-style-type: none;
-            padding-left: 0;
+            list-style: none;
         }
-
-        ul > li {
+        td ul > li, .content-box ul > li {
             position: relative;
-            padding-left: 20px;
-            margin-bottom: 10px;
-            font-size: 1.05rem;
-        }
-
-        ul > li::before {
-            content: '•';
-            color: var(--primary-accent);
-            font-weight: bold;
-            font-size: 1.2em;
-            position: absolute;
-            left: 0;
-            top: -2px;
-        }
-
-        .nested-list {
-            margin-top: 8px;
+            padding-left: 24px;
             margin-bottom: 12px;
         }
-        
-        .nested-list > li::before {
-            content: '◦';
+        td ul > li:last-child, .content-box ul > li:last-child {
+            margin-bottom: 0;
+        }
+        td ul > li::before, .content-box ul > li::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 10px;
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background-color: var(--accent);
+        }
+
+        /* Text Highlights */
+        strong.highlight-text {
+            color: var(--primary-dark);
+            display: inline-block;
+            margin-bottom: 8px;
+            font-size: 1.25rem;
+        }
+        .sub-text {
             color: var(--text-muted);
+            font-size: 1rem;
+            display: block;
+            margin-top: 4px;
         }
 
-        /* Card Layouts */
-        .grid-container {
+        /* 2-Column Grid for Operations */
+        .grid-2 {
             display: grid;
-            grid-template-columns: 1fr;
-            gap: 24px;
-        }
-
-        @media (min-width: 768px) {
-            .grid-container {
-                grid-template-columns: repeat(2, 1fr);
-            }
+            grid-template-columns: 1fr 1fr;
+            gap: 32px;
+            height: 100%; /* 슬라이드 영역을 꽉 채우도록 */
         }
 
         .content-box {
-            background-color: white;
-            padding: 30px;
-            border-radius: 16px;
+            background: var(--surface-color);
+            padding: 40px;
+            border-radius: 20px;
             border: 1px solid var(--border-color);
             box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
-            border-top: 4px solid var(--primary-accent);
-            transition: transform 0.2s;
-        }
-        
-        .content-box:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1);
-        }
-
-        /* Discussion Points - Highlight Slide */
-        .discussion-slide {
-            background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
-            border: 4px solid var(--highlight-border);
-            border-radius: 20px;
-            padding: 50px 60px;
-            height: calc(100% - 20px); /* Leave slight margin */
-            margin: 10px;
             display: flex;
             flex-direction: column;
-            justify-content: center;
         }
 
-        .discussion-slide h2 {
-            color: #b45309;
-            border-bottom: 3px solid #fcd34d;
-            padding-bottom: 15px;
-            margin-bottom: 40px;
+        .content-box h3 {
+            color: var(--primary-dark);
+            font-size: 1.6rem;
+            font-weight: 800;
+            margin-bottom: 24px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            border-bottom: 2px solid var(--border-color);
+            padding-bottom: 16px;
         }
         
-        .discussion-slide ul > li {
-            font-size: 1.2rem;
-            margin-bottom: 20px;
-            line-height: 1.7;
-        }
-        
-        .discussion-slide ul > li::before {
-            color: #d97706;
+        .content-box p.desc {
+            color: var(--primary-main);
+            font-weight: 600;
+            margin-bottom: 24px;
+            font-size: 1.1rem;
         }
 
-        .highlight {
-            background-color: #fef08a;
-            padding: 4px 8px;
-            border-radius: 6px;
-            font-weight: 700;
-            color: #92400e;
+        .content-box ul {
+            font-size: 1.15rem;
         }
-        
-        .box-highlight {
-            background-color: white;
+
+        .info-panel {
+            margin-top: auto; /* 박스 하단으로 밀어내기 */
+            background: var(--primary-light);
             padding: 20px;
             border-radius: 12px;
-            margin-top: 10px;
+            border-left: 4px solid var(--primary-main);
+        }
+        .info-panel strong {
+            color: var(--primary-dark);
+            display: block;
+            margin-bottom: 8px;
+        }
+
+        /* Links */
+        a.ref-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: var(--surface-color);
+            color: var(--primary-main);
+            padding: 12px 20px;
+            border-radius: 12px;
+            text-decoration: none;
+            font-weight: 700;
+            border: 1px solid var(--border-color);
+            margin-top: 16px;
             box-shadow: 0 2px 4px rgba(0,0,0,0.05);
         }
 
-        /* Controls */
+        /* Discussion Checklist Slide */
+        .checklist-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 20px;
+        }
+
+        .check-item {
+            background: var(--surface-color);
+            border-radius: 16px;
+            padding: 24px 32px;
+            display: flex;
+            gap: 24px;
+            align-items: flex-start;
+            border: 1px solid var(--border-color);
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+        }
+
+        .check-icon {
+            width: 48px;
+            height: 48px;
+            background: var(--primary-light);
+            color: var(--primary-main);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            flex-shrink: 0;
+        }
+
+        .check-content h4 {
+            font-size: 1.4rem;
+            font-weight: 800;
+            color: var(--primary-dark);
+            margin-bottom: 12px;
+        }
+
+        .check-content p {
+            font-size: 1.15rem;
+            color: var(--text-main);
+            line-height: 1.6;
+            margin-bottom: 12px;
+        }
+
+        .check-content p:last-child { margin-bottom: 0; }
+
+        .mark-highlight {
+            background-color: var(--warning-light);
+            color: var(--warning-text);
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-weight: 700;
+        }
+
+        .mark-danger {
+            color: var(--danger-text);
+            background-color: var(--danger-light);
+            padding: 4px 12px;
+            border-radius: 8px;
+            font-weight: 700;
+            display: inline-block;
+            font-size: 1.05rem;
+            margin-top: 8px;
+        }
+
+        /* Navigation Controls */
         .nav-btn {
             position: absolute;
             top: 50%;
             transform: translateY(-50%);
-            background-color: white;
+            background-color: var(--surface-color);
             color: var(--primary-dark);
             border: 1px solid var(--border-color);
             border-radius: 50%;
-            width: 56px;
-            height: 56px;
+            width: 64px;
+            height: 64px;
             cursor: pointer;
             z-index: 10;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 24px;
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            font-size: 28px;
+            box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1);
             transition: all 0.2s ease;
         }
 
         .nav-btn:hover {
-            background-color: var(--primary-dark);
+            background-color: var(--primary-main);
             color: white;
-            transform: translateY(-50%) scale(1.05);
+            border-color: var(--primary-main);
         }
 
-        .prev-btn { left: -28px; } /* Pull out slightly */
-        .next-btn { right: -28px; }
+        .prev-btn { left: -32px; }
+        .next-btn { right: -32px; }
 
         .pagination {
             position: absolute;
-            bottom: 25px;
+            bottom: 30px;
             left: 50%;
             transform: translateX(-50%);
             display: flex;
-            gap: 12px;
+            gap: 16px;
             z-index: 10;
         }
 
         .dot {
-            width: 10px;
-            height: 10px;
+            width: 12px;
+            height: 12px;
             border-radius: 50%;
             background-color: #cbd5e1;
             cursor: pointer;
@@ -359,33 +443,22 @@
         }
 
         .dot.active {
-            background-color: var(--primary-accent);
-            transform: scale(1.5);
-            width: 20px;
+            background-color: var(--primary-main);
+            transform: scale(1.4);
             border-radius: 10px;
         }
 
-        /* Links */
-        a {
-            color: var(--primary-accent);
-            text-decoration: none;
-            font-weight: 600;
-            border-bottom: 1px solid transparent;
-            transition: border-color 0.2s;
-        }
-        a:hover {
-            border-color: var(--primary-accent);
-        }
-
-        /* Mobile specific adjustments */
-        @media (max-width: 768px) {
-            .slide { padding: 40px 25px 80px 25px; }
+        /* Responsive Adjustments */
+        @media (max-width: 1024px) {
+            .presentation-wrapper { width: 100vw; height: 100vh; max-height: 100vh; aspect-ratio: auto; border-radius: 0; box-shadow: none; }
+            .slider { border-radius: 0; }
+            .slide { padding: 40px 30px 100px; }
+            h1 { font-size: 3rem; }
+            h2 { font-size: 2rem; }
             .nav-btn { display: none; }
-            .presentation-wrapper { height: 100vh; max-height: none; border-radius: 0; }
-            .discussion-slide { padding: 30px 20px; margin: 0; border: none; border-radius: 0; }
-            h1 { font-size: 2.5rem; }
-            h2 { font-size: 1.8rem; }
-            .prev-btn, .next-btn { display: none; } /* Hide buttons on mobile */
+            .grid-2 { grid-template-columns: 1fr; height: auto; }
+            th, td { padding: 16px; font-size: 1rem; }
+            td:first-child { width: auto; }
         }
     </style>
 </head>
@@ -402,140 +475,162 @@
             <!-- Slide 1: Cover -->
             <div class="slide slide-cover">
                 <div class="badge">PROPOSAL</div>
-                <h1>해커톤 기획안</h1>
-                <div class="subtitle">견적 및 세부 운영 계획서</div>
+                <h1>해커톤 세부 운영 기획안</h1>
+                <div class="subtitle">타임테이블 및 행사 운영 가이드라인</div>
                 <div class="swipe-hint">
-                    <span>좌우로 넘겨서 확인해주세요 (Swipe)</span>
-                    <span>👉</span>
+                    <span>우측으로 넘겨주세요</span>
+                    <span>→</span>
                 </div>
             </div>
 
             <!-- Slide 2: 행사 전날 타임테이블 -->
             <div class="slide">
                 <h2><span class="icon">📅</span> 타임테이블 (행사 전날)</h2>
-                <div class="table-responsive">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>시간</th>
-                                <th>세부 진행 내용</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td>12:30 ~ 16:00</td>
-                                <td>
-                                    <strong style="color: var(--primary-dark); display:block; margin-bottom: 8px;">행사장 현장 세팅</strong>
-                                    <ul>
-                                        <li>테이블 세팅 (서류 접수대, 명찰 배부대, 테이블 넘버링 등)</li>
-                                        <li>기자재 배치 (노트북, 마우스, 리플렛, 필기도구)</li>
-                                        <li>안내책자 / 포스터 부착</li>
-                                        <li>각종 서류 준비 (개인정보/초상권 동의서 등)</li>
-                                        <li>배너, 포토월 설치 및 화면/음향 장비 확인</li>
-                                        <li>수료증 및 경품 준비 완료</li>
-                                    </ul>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>16:00 ~ 16:30</td>
-                                <td>
-                                    <ul>
-                                        <li>오리엔테이션 진행을 위한 환경 점검</li>
-                                        <li>참가자 대상 온라인 OT 자료 사전 공유</li>
-                                    </ul>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>16:30 ~ 17:00</td>
-                                <td>
-                                    <strong style="color: var(--primary-dark); display:block; margin-bottom: 8px;">참가자 사전 오리엔테이션</strong>
-                                    <ul>
-                                        <li>사용 플랫폼 접속 및 활용 안내</li>
-                                        <li>팀 구성 및 해커톤 기본 규칙 안내</li>
-                                    </ul>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
+                <div class="content-area">
+                    <div class="table-wrapper">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>소요 시간</th>
+                                    <th>주요 진행 내용</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>12:30 ~ 16:00</td>
+                                    <td>
+                                        <strong class="highlight-text">행사장 현장 세팅</strong>
+                                        <ul>
+                                            <li>테이블 세팅 (서류 접수대, 명찰 배부대, 테이블 넘버링 등)</li>
+                                            <li>기자재 배치 (노트북, 마우스, 리플렛, 필기도구)</li>
+                                            <li>안내책자 / 포스터 부착 및 배너·포토월 설치</li>
+                                            <li>각종 서류(동의서 등), 수료증 및 경품 준비 완료</li>
+                                        </ul>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>16:00 ~ 16:30</td>
+                                    <td>
+                                        <strong class="highlight-text">OT 환경 점검</strong>
+                                        <ul>
+                                            <li>오리엔테이션 진행을 위한 온라인/오프라인 환경 점검</li>
+                                            <li>참가자 대상 온라인 OT 자료 사전 공유</li>
+                                        </ul>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>16:30 ~ 17:00</td>
+                                    <td>
+                                        <strong class="highlight-text">참가자 사전 오리엔테이션</strong>
+                                        <ul>
+                                            <li>사용 플랫폼 접속 및 활용 안내</li>
+                                            <li>팀 구성 및 해커톤 기본 규칙 공지</li>
+                                        </ul>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
 
             <!-- Slide 3: 행사 당일 타임테이블 -->
             <div class="slide">
                 <h2><span class="icon">⏰</span> 타임테이블 (행사 당일)</h2>
-                <div class="table-responsive">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th width="22%">시간</th>
-                                <th>세부 진행 내용</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td>07:30 ~ 09:00</td>
-                                <td>현장 최종 점검 및 참가자 입장 (08:30~)</td>
-                            </tr>
-                            <tr>
-                                <td>09:00 ~ 09:30</td>
-                                <td>해커톤 과제 상세 안내 및 채점 기준 발표</td>
-                            </tr>
-                            <tr>
-                                <td>09:40 ~ 12:00</td>
-                                <td>
-                                    <strong style="color: var(--primary-dark);">오전 타임 집중 작업</strong><br>
-                                    <span style="color: var(--text-muted); font-size: 0.95em;">주제 구성 → 전략 수립 → 역할 분배 → 본격 작업 진행</span>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>12:00 ~ 13:00</td>
-                                <td>점심 식사 및 휴식</td>
-                            </tr>
-                            <tr>
-                                <td>13:00 ~ 16:00</td>
-                                <td>
-                                    <strong style="color: var(--primary-dark);">오후 타임 집중 작업</strong><br>
-                                    <span style="color: var(--text-muted); font-size: 0.95em;">서비스 개발 및 발표 자료 제작 (중간 레크리에이션 운영 병행)</span>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>16:00 ~ 17:40</td>
-                                <td>각 팀별 결과물 발표 (16:00~17:30) 및 심사위원 채점 결과 취합</td>
-                            </tr>
-                            <tr>
-                                <td>17:40 ~ 18:00</td>
-                                <td>수료식 진행, 시상 및 단체사진 촬영 후 종료</td>
-                            </tr>
-                        </tbody>
-                    </table>
+                <div class="content-area">
+                    <div class="table-wrapper">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>소요 시간</th>
+                                    <th>주요 진행 내용</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>07:30 ~ 09:30</td>
+                                    <td>
+                                        <strong class="highlight-text">현장 점검 및 개회</strong>
+                                        <ul>
+                                            <li>08:30 참가자 입장 및 안내</li>
+                                            <li>09:00 해커톤 과제 상세 안내 및 채점 기준 발표</li>
+                                        </ul>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>09:40 ~ 12:00</td>
+                                    <td>
+                                        <strong class="highlight-text">오전 타임 집중 작업</strong>
+                                        <span class="sub-text">주제 구성 → 전략 수립 → 역할 분배 → 본격 작업 진행</span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>12:00 ~ 13:00</td>
+                                    <td>
+                                        <strong class="highlight-text" style="color:var(--text-muted);">점심 식사 및 휴식</strong>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>13:00 ~ 16:00</td>
+                                    <td>
+                                        <strong class="highlight-text">오후 타임 집중 작업</strong>
+                                        <span class="sub-text">서비스 개발 및 발표 자료 제작 (중간 레크리에이션 운영 병행)</span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>16:00 ~ 18:00</td>
+                                    <td>
+                                        <strong class="highlight-text">발표 및 시상식</strong>
+                                        <ul>
+                                            <li>16:00~17:30 팀별 결과물 발표 및 심사위원 채점</li>
+                                            <li>17:40~18:00 수료식, 시상 및 단체사진 촬영 후 종료</li>
+                                        </ul>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
 
             <!-- Slide 4: 행사 운영안 (1) -->
             <div class="slide">
                 <h2><span class="icon">💡</span> 세부 행사 운영안 (1)</h2>
-                <div class="grid-container" style="margin-top: 10px;">
-                    <div class="content-box">
-                        <h3>👥 체계적인 팀 구성</h3>
-                        <p style="margin-bottom: 15px; color: var(--text-muted);">효율적인 협업을 위한 구조</p>
-                        <ul>
-                            <li><strong>구성 방식:</strong> 사전에 구성된 4인 1팀 배정<br>(60명 기준, 총 15개 팀 운영)</li>
-                            <li style="margin-top: 10px;"><strong>역할 분담 (분업화):</strong><br>
-                                팀 내에서 [주제 선정 / 서비스 설계 / 발표 자료 제작 / 서비스 데모 제작] 등 역할을 명확히 나누어 진행하도록 가이드
-                            </li>
-                        </ul>
-                    </div>
+                <div class="content-area">
+                    <div class="grid-2">
+                        <div class="content-box">
+                            <h3>👥 체계적인 팀 구성</h3>
+                            <p class="desc">효율적인 협업을 위한 구조 설계</p>
+                            <ul>
+                                <li><strong>구성 방식:</strong> 사전에 구성된 4인 1팀 배정<br><span style="color:var(--text-muted); font-size:1rem;">(60명 기준, 총 15개 팀 운영)</span></li>
+                                <br>
+                                <li><strong>역할 분담 (분업화):</strong><br>
+                                    팀 내에서 역할을 명확히 나누어 동시다발적으로 진행하도록 가이드 제공
+                                    <ul style="margin-top: 12px; margin-left: 8px;">
+                                        <li>✔️ 기획 (주제 선정 및 서비스 설계)</li>
+                                        <li>✔️ 디자인/발표 (발표 자료 제작)</li>
+                                        <li>✔️ 개발 (서비스 데모 제작)</li>
+                                    </ul>
+                                </li>
+                            </ul>
+                        </div>
 
-                    <div class="content-box">
-                        <h3>🎯 결과물 도출 가이드</h3>
-                        <p style="margin-bottom: 15px; color: var(--text-muted);">관내 문제 해결을 위한 솔루션</p>
-                        <ul>
-                            <li><strong>개발 환경:</strong> 생성형 AI 툴 활용 고정<br>(Cursor, Claude, GPT, Gemini 등)</li>
-                            <li><strong>주제 범위:</strong> 관내 문제 해결을 위한 <br>웹서비스 / 웹페이지 / 앱 / 게임 등</li>
-                            <li style="margin-top: 10px;"><strong>참조 레퍼런스:</strong><br>
-                                👉 <a href="https://dojeonrobot.github.io/TMD-Hackathon/" target="_blank">TMD Hackathon 예시 확인하기</a>
-                            </li>
-                        </ul>
+                        <div class="content-box">
+                            <h3>🎯 결과물 도출 가이드</h3>
+                            <p class="desc">관내 문제 해결을 위한 솔루션 구현</p>
+                            <ul>
+                                <li><strong>개발 환경:</strong> 생성형 AI 툴 활용 필수<br><span style="color:var(--text-muted); font-size:1rem;">(Cursor, Claude, GPT, Gemini 등)</span></li>
+                                <br>
+                                <li><strong>주제 범위:</strong> 관내 문제 해결을 위한 IT 솔루션<br><span style="color:var(--text-muted); font-size:1rem;">(웹서비스 / 웹페이지 / 앱 / 미니 게임 등 형태 자율)</span></li>
+                            </ul>
+                            
+                            <div style="margin-top: auto; padding-top: 24px;">
+                                <span style="font-size: 1rem; color: var(--text-muted); font-weight: 700;">참조 레퍼런스</span><br>
+                                <a href="https://dojeonrobot.github.io/TMD-Hackathon/" target="_blank" class="ref-link">
+                                    🔗 TMD Hackathon 결과물 예시 확인하기
+                                </a>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -543,75 +638,84 @@
             <!-- Slide 5: 행사 운영안 (2) -->
             <div class="slide">
                 <h2><span class="icon">📊</span> 세부 행사 운영안 (2)</h2>
-                <div class="grid-container" style="margin-top: 10px;">
-                    <div class="content-box">
-                        <h3>🎤 발표 및 심사 기준</h3>
-                        <ul>
-                            <li><strong>진행 방식:</strong> 팀 단위 5분 내외 발표<br>(총 15팀 = 심사 포함 약 75분 소요 예상)</li>
-                            <li><strong>심사위원 구성:</strong><br>AI 분야 전문가 또는 강남구 전문가 섭외</li>
-                            <li style="margin-top: 10px; background: #f1f5f9; padding: 12px; border-radius: 8px;">
-                                <strong>💡 핵심 채점 방향:</strong><br>
-                                코딩 스킬에 따른 격차 방지를 위해 기술적 퀄리티보다는 <strong style="color: var(--primary-accent);">'창의적인 아이디어'</strong>와 <strong style="color: var(--primary-accent);">'발표 전달력'</strong>의 비중을 높여 채점표 구성
-                            </li>
-                        </ul>
-                    </div>
-                    
-                    <div class="content-box">
-                        <h3>📑 발표 자료 및 시상</h3>
-                        <ul>
-                            <li><strong>자료 제작:</strong> 발표를 위한 <strong>PPT 제작 필수</strong></li>
-                            <li><strong>AI 툴 활용:</strong> PPT 역시 GAMMA AI, GENSPARK 등 AI 툴을 적극 활용하여 효율적으로 제작 권장</li>
-                        </ul>
-                        <hr style="border:0; border-top: 1px solid var(--border-color); margin: 20px 0;">
-                        <h3>🏆 시상 내역 및 OT</h3>
-                        <ul>
-                            <li><strong>시상 규모:</strong> 대상 / 최우수상 / 우수상 (총 3팀)</li>
-                            <li><strong>OT 논의점:</strong> 참가자에게 해커톤 전 제공할 사전 정보의 범위 협의 필요</li>
-                        </ul>
+                <div class="content-area">
+                    <div class="grid-2">
+                        <div class="content-box">
+                            <h3>🎤 발표 및 심사 방식</h3>
+                            <ul>
+                                <li><strong>진행 방식:</strong> 팀 단위 5분 내외 발표 진행<br><span style="color:var(--text-muted); font-size:1rem;">(총 15팀 = 심사 포함 약 75분 소요 예상)</span></li>
+                                <br>
+                                <li><strong>심사위원 구성:</strong><br>AI 분야 전문가 또는 관할 구청 담당자 섭외</li>
+                            </ul>
+                            
+                            <div class="info-panel">
+                                <strong>💡 핵심 채점 방향</strong>
+                                코딩 스킬에 따른 격차 방지를 위해 기술적 완성도보다는 <span class="mark-highlight">창의적인 아이디어</span>와 <span class="mark-highlight">발표 전달력</span>의 비중을 높여 심사표를 구성합니다.
+                            </div>
+                        </div>
+                        
+                        <div class="content-box">
+                            <h3>📑 산출물 및 시상 내역</h3>
+                            <ul>
+                                <li><strong>자료 제작:</strong> 발표를 위한 <strong>PPT 제출 필수</strong></li>
+                                <br>
+                                <li><strong>AI 툴 적극 활용:</strong><br>
+                                    결과물뿐만 아니라 PPT 역시 GAMMA AI, GENSPARK 등 AI 툴을 활용하여 제작 시간 단축 권장
+                                </li>
+                                <br>
+                                <li><strong>시상 규모:</strong><br>대상 1팀 / 최우수상 1팀 / 우수상 1팀 (총 3팀)</li>
+                                <br>
+                                <li><strong>사전 안내:</strong><br>
+                                    참가자에게 해커톤 전 제공할 사전 정보의 범위(주제 일부 공개 여부 등) 협의 필요
+                                </li>
+                            </ul>
+                        </div>
                     </div>
                 </div>
             </div>
 
             <!-- Slide 6: 미팅 논의 안건 -->
-            <div class="slide" style="padding: 0; background: transparent;">
-                <div class="discussion-slide">
-                    <h2>📝 미팅 주요 논의 안건 (체크리스트)</h2>
-                    
-                    <ul>
-                        <li>
-                            <strong>사전 팀 구성 방식 (TMD 관련)</strong>
-                            <div class="box-highlight">
-                                사전에 팀을 확실하게 짜서 오도록 안내하되, <span class="highlight">DORO 측에서 명확한 '팀 구성 기준'을 사전에 제시</span>해야 합니다.
-                            </div>
-                        </li>
+            <div class="slide">
+                <h2><span class="icon">📝</span> 미팅 주요 논의 안건</h2>
+                <div class="content-area" style="justify-content: center;">
+                    <div class="checklist-grid">
                         
-                        <li>
-                            <strong>참여 멘토의 역할 정의</strong>
-                            <div class="box-highlight">
-                                멘토링의 개입 범위를 명확히 정해야 합니다. 기술적 개입을 하는 멘토보다는 <span class="highlight">현장 통제 및 단순 운영 인력으로만 활용</span>하는 방안을 제안합니다.
+                        <div class="check-item">
+                            <div class="check-icon">1</div>
+                            <div class="check-content">
+                                <h4>사전 팀 구성 및 운영 방식</h4>
+                                <p>본 행사는 <strong>사전에 팀 구성이 완료된 상태로 참여</strong>하는 것을 전제로 합니다.</p>
+                                <p>당사에서는 팀원 간 원활하게 협업할 수 있도록 <strong>직무별(기획/디자인/개발) 역할 분담 가이드와 팀 단위 밀착 운영 프로세스</strong>를 현장에서 제공하여 참가자들의 체계적인 결과물 도출을 유도하고자 합니다.</p>
                             </div>
-                        </li>
+                        </div>
+                        
+                        <div class="check-item">
+                            <div class="check-icon">2</div>
+                            <div class="check-content">
+                                <h4>참여 멘토의 역할 정의</h4>
+                                <p>멘토링의 개입 범위를 명확히 하여, 깊은 기술적 개입보다는 <strong>참가자 독려 및 원활한 행사 운영을 위한 현장 인력으로 활용</strong>하는 방안을 제안합니다.</p>
+                            </div>
+                        </div>
 
-                        <li>
-                            <strong>사전 홍보 가이드라인</strong>
-                            <div class="box-highlight">
-                                홍보 및 모객 단계에서는 해커톤의 <span class="highlight">구체적인 주제가 미리 유출되지 않도록</span> 주의가 필요합니다.
+                        <div class="check-item">
+                            <div class="check-icon">3</div>
+                            <div class="check-content">
+                                <h4>사전 홍보 가이드라인</h4>
+                                <p>홍보 및 모객 단계에서 해커톤의 <span class="mark-highlight">구체적인 주제가 사전에 유출되지 않도록</span> 가이드라인을 수립하여 통제하고자 합니다.</p>
                             </div>
-                        </li>
+                        </div>
 
-                        <li>
-                            <strong>최종 심사 관련 (학생 투표 도입)</strong>
-                            <div class="box-highlight" style="border: 2px solid var(--primary-accent);">
-                                <ul style="margin-bottom: 0;">
-                                    <li>모든 팀 발표 진행 후 전문가 심사와 함께 <strong>학생 현장 투표</strong>를 실시합니다.</li>
-                                    <li>학생들의 투표 결과가 <span class="highlight">최종 심사 결과(채점)에 일정 비율 반드시 반영</span>되도록 조율합니다.</li>
-                                    <li style="color: #dc2626; font-weight: bold; margin-bottom: 0; margin-top: 8px;">
-                                        ※ 공정성을 위해 '본인 소속 팀'에는 투표할 수 없도록 제한 규정을 둡니다.
-                                    </li>
-                                </ul>
+                        <div class="check-item" style="border: 2px solid var(--primary-main);">
+                            <div class="check-icon" style="background: var(--primary-main); color: white;">4</div>
+                            <div class="check-content">
+                                <h4>최종 심사 방식 (학생 현장 투표 도입)</h4>
+                                <p>모든 팀 발표 진행 후 <strong>전문가 심사와 함께 학생 현장 투표를 병행하여 진행</strong>하는 것을 제안합니다.</p>
+                                <p>학생들의 현장 투표 결과가 <span class="mark-highlight">최종 심사(채점)에 일정 비율 반영</span>될 수 있도록 평가 기준을 조율하고자 합니다.</p>
+                                <div class="mark-danger">※ 공정성을 위해 '본인 소속 팀'에는 투표할 수 없도록 제한 규정 설정 예정</div>
                             </div>
-                        </li>
-                    </ul>
+                        </div>
+
+                    </div>
                 </div>
             </div>
 
@@ -685,7 +789,7 @@
                 const slideWidth = slider.clientWidth;
                 const newIndex = Math.round(scrollLeft / slideWidth);
                 
-                if (newIndex !== currentIndex) {
+                if (newIndex !== currentIndex && newIndex >= 0 && newIndex < slides.length) {
                     currentIndex = newIndex;
                     updateDots();
                 }
