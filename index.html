@@ -73,6 +73,11 @@
             color-scheme: dark;
         }
 
+        /* 타이머 숫자 폭 고정 (카운트다운 중 자릿수 흔들림 방지) */
+        #timerDisplay {
+            font-variant-numeric: tabular-nums;
+        }
+
         /* 전광판 흐르는 텍스트 애니메이션 */
         @keyframes marquee {
             0% { transform: translateX(100%); }
@@ -193,7 +198,7 @@
                 </div>
                 <div class="relative w-full overflow-hidden">
                     <div id="noticeMarquee" class="marquee-content text-rose-100 text-xs md:text-sm font-semibold tracking-wide">
-                        💻 2026 강남구 AI 문제해결 해커톤에 참여하신 여러분을 환영합니다! 설정 메뉴를 열어 공지 사항을 실시간으로 교체할 수 있습니다.
+                        💻 2026 강남구 AI 문제해결 해커톤에 참여하신 여러분을 환영합니다!
                     </div>
                 </div>
             </div>
@@ -662,10 +667,16 @@
             saveSettings();
             applyActiveCaseLogic(true);
             updateMasterLoop();
+            requestAnimationFrame(applyTimerSize);
         }
 
         function updateMasterLoop() {
             const now = new Date();
+
+            // 화면 폭이 바뀌면 타이머 크기 재보정 (resize 이벤트 누락 대비 안전장치)
+            if (applyTimerSize._lastWidth !== window.innerWidth) {
+                applyTimerSize();
+            }
             
             const h = String(now.getHours()).padStart(2, '0');
             const m = String(now.getMinutes()).padStart(2, '0');
@@ -1050,12 +1061,42 @@
         }
 
         function applyTimerSize() {
-            const baseVw = 11;
-            const computedSize = (baseVw * (fontSizeScale / 100)).toFixed(2);
             const timerDisplay = document.getElementById('timerDisplay');
-            if (timerDisplay) {
-                timerDisplay.style.fontSize = computedSize + "vw";
+            if (!timerDisplay) return;
+
+            // 원하는 크기(기존 11vw 기준 × 사용자 배율)를 px로 환산
+            const baseVw = 11;
+            const desiredPx = window.innerWidth * (baseVw / 100) * (fontSizeScale / 100);
+
+            // 가장 긴 포맷(00:00:00)의 실제 글자 폭을 화면 밖 임시 요소로 정확히 측정한다.
+            // (화면에 보이는 타이머의 레이아웃/정렬은 전혀 건드리지 않음)
+            let textWidth = 0;
+            try {
+                const cs = window.getComputedStyle(timerDisplay);
+                const probe = document.createElement('span');
+                probe.style.cssText = 'position:absolute;visibility:hidden;white-space:nowrap;left:-9999px;top:0;pointer-events:none;';
+                probe.style.fontFamily = cs.fontFamily;
+                probe.style.fontWeight = cs.fontWeight;
+                probe.style.fontStyle = cs.fontStyle;
+                probe.style.letterSpacing = cs.letterSpacing;
+                probe.style.fontVariantNumeric = 'tabular-nums';
+                probe.style.fontSize = desiredPx + 'px';
+                probe.textContent = '00:00:00';
+                document.body.appendChild(probe);
+                textWidth = probe.offsetWidth;
+                document.body.removeChild(probe);
+            } catch (e) {
+                textWidth = 0;
             }
+
+            // 화면 폭의 92% 안에 들어오도록, 넘치면 그 비율만큼 축소 → 항상 정중앙 + 잘림 방지
+            const maxWidth = window.innerWidth * 0.92;
+            let finalPx = desiredPx;
+            if (textWidth > 0 && textWidth > maxWidth) {
+                finalPx = desiredPx * (maxWidth / textWidth);
+            }
+            timerDisplay.style.fontSize = finalPx + 'px';
+            applyTimerSize._lastWidth = window.innerWidth;
         }
 
         // 로고 및 브랜드 영역 감추기 처리
@@ -1182,6 +1223,15 @@
             // 타이머 업데이트 주기 작동
             setInterval(updateMasterLoop, 1000);
             updateMasterLoop(); // 즉시 갱신
+
+            // 타이머 글자가 화면을 벗어나지 않고 항상 정중앙에 들어오도록 크기 재보정
+            window.addEventListener('resize', applyTimerSize);
+            window.addEventListener('load', applyTimerSize);
+            if (document.fonts && document.fonts.ready) {
+                document.fonts.ready.then(applyTimerSize);
+            }
+            setTimeout(applyTimerSize, 200);
+            setTimeout(applyTimerSize, 800);
         }
 
         if (document.readyState === 'loading') {
