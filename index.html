@@ -16,14 +16,11 @@
             user-select: none;
         }
 
-        /* [색상 정밀 포인터 검출 반영] 업로드 배경 이미지와 100% 싱크되는 밝고 비비드한 고대비 그라데이션 */
+        /* 배경: 무지개색 대신 한 계열의 어두운 네이비 그라데이션 (유리 UI·포인트 색이 살아나도록) */
         .vector-bg {
-            background: 
-                radial-gradient(circle at 10% 20%, #1cbced 0%, transparent 60%),
-                radial-gradient(circle at 5% 90%, #df51ad 0%, transparent 60%),
-                radial-gradient(circle at 95% 90%, #007a61 0%, transparent 60%),
-                radial-gradient(circle at 90% 10%, #5a399f 0%, transparent 65%),
-                radial-gradient(circle at 50% 50%, #2b2b8c 0%, #171752 100%);
+            background:
+                radial-gradient(90% 60% at 50% 0%, #33337e 0%, transparent 62%),
+                linear-gradient(180deg, #1a1a4d 0%, #0f0f2c 100%);
         }
 
         /* 타임 아웃 시 긴박감 주는 텍스트 깜빡임 */
@@ -76,18 +73,28 @@
         /* 타이머 숫자 폭 고정 + 화면폭에 맞춘 자동 크기 (8자리 모노스페이스가 어떤 화면폭에서도 안 넘침) */
         #timerDisplay {
             font-variant-numeric: tabular-nums;
-            /* 기본 11vw × 사용자 배율, 단 16vw를 넘지 않도록 상한 → 좌우 여백 유지하며 항상 정중앙 */
-            font-size: min(calc(11vw * var(--timer-scale, 1)), 16vw);
+            white-space: nowrap;
+            line-height: 1;
+            /* 폰트 크기는 JS(applyTimerSize)가 실제 글자 폭을 측정해 화면폭에 맞춰 설정 → 자리수/줌 무관 항상 정중앙 */
+        }
+        /* 타이머: 실제 렌더 폭을 측정해 화면 정중앙으로 보정(applyTimerSize) → 부모 폭/여백 영향 제거 */
+        .timer-stage {
+            position: relative;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
         }
 
         /* 전광판 흐르는 텍스트 애니메이션 */
         @keyframes marquee {
-            0% { transform: translateX(100%); }
+            0% { transform: translateX(0); }
             100% { transform: translateX(-100%); }
         }
         .marquee-content {
             display: inline-block;
             white-space: nowrap;
+            padding-left: 100%;
             animation: marquee 25s linear infinite;
         }
 
@@ -186,8 +193,8 @@
             </div>
 
             <!-- 메인 카운트다운 -->
-            <div class="relative w-full text-center">
-                <span id="timerDisplay" class="font-mono font-black select-all cursor-pointer leading-none tracking-tight block text-white drop-shadow-[0_10px_30px_rgba(0,0,0,0.5)]" style="--timer-scale: 1;">
+            <div class="timer-stage relative">
+                <span id="timerDisplay" class="font-mono font-black select-all cursor-pointer leading-none tracking-tight text-white drop-shadow-[0_10px_30px_rgba(0,0,0,0.5)]">
                     00:00:00
                 </span>
             </div>
@@ -211,13 +218,13 @@
         <!-- 하단: 슬라이드 알림 자막 및 기관 정보 -->
         <div class="w-full flex flex-col items-center mt-auto">
             <!-- 흐르는 자막 시스템 -->
-            <div id="noticeContainer" class="w-full max-w-4xl bg-rose-950/40 border border-rose-800/30 rounded-xl h-11 overflow-hidden flex items-center backdrop-blur-md mb-6 shadow-md">
-                <div class="bg-rose-600 text-white font-extrabold px-4 py-2.5 text-xs tracking-wider flex items-center gap-2 shrink-0 z-10 shadow-lg">
+            <div id="noticeContainer" class="w-full max-w-4xl bg-violet-950/40 border border-violet-700/30 rounded-xl h-11 overflow-hidden flex items-center backdrop-blur-md mb-6 shadow-md">
+                <div class="bg-gradient-to-r from-violet-600 to-fuchsia-600 text-white font-extrabold px-4 self-stretch text-xs tracking-wider flex items-center gap-2 shrink-0 z-10 shadow-lg">
                     <svg class="w-3.5 h-3.5 animate-bounce" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg>
                     NOTICE
                 </div>
                 <div class="relative w-full overflow-hidden">
-                    <div id="noticeMarquee" class="marquee-content text-rose-100 text-xs md:text-sm font-semibold tracking-wide">
+                    <div id="noticeMarquee" class="marquee-content text-violet-100 text-xs md:text-sm font-semibold tracking-wide">
                         💻 2026 강남구 AI 문제해결 해커톤에 참여하신 여러분을 환영합니다!
                     </div>
                 </div>
@@ -309,9 +316,9 @@
             <div>
                 <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">실시간 공지사항 배너 문구</label>
                 <div class="space-y-2">
-                    <textarea id="noticeInput" rows="3" class="w-full bg-slate-900 border border-slate-800 rounded-lg p-3 text-sm text-slate-200 focus:border-rose-500 focus:outline-none" placeholder="여기에 실시간 공지사항이나 진행 관련 멘트를 입력하세요..."></textarea>
+                    <textarea id="noticeInput" rows="3" class="w-full bg-slate-900 border border-slate-800 rounded-lg p-3 text-sm text-slate-200 focus:border-violet-500 focus:outline-none" placeholder="여기에 실시간 공지사항이나 진행 관련 멘트를 입력하세요..."></textarea>
                     <div class="flex gap-2">
-                        <button onclick="updateNoticeText()" class="flex-1 bg-rose-600 hover:bg-rose-500 py-2 rounded-lg text-xs font-bold transition-all">공지사항 전광판 전송</button>
+                        <button onclick="updateNoticeText()" class="flex-1 bg-violet-600 hover:bg-violet-500 py-2 rounded-lg text-xs font-bold transition-all">공지사항 전광판 전송</button>
                         <button onclick="toggleNoticeVisible()" id="noticeToggleBtn" class="bg-slate-800 hover:bg-slate-700 px-3 py-2 rounded-lg text-xs text-slate-300">공지판 숨기기</button>
                     </div>
                 </div>
@@ -817,6 +824,7 @@
             } else {
                 processDurationModeCountdown();
             }
+            applyTimerSize();
         }
 
         function processTargetModeCountdown(now) {
@@ -1187,12 +1195,46 @@
         }
 
         function applyTimerSize() {
-            // 실제 폰트 크기는 CSS의 min(calc(11vw * --timer-scale), 16vw) 가 화면폭에 맞춰 자동 제한한다.
-            // 여기서는 사용자 배율(+/- 버튼)만 CSS 변수로 전달 → JS 측정 불필요, 어떤 환경에서도 잘림 없음.
             const timerDisplay = document.getElementById('timerDisplay');
             if (!timerDisplay) return;
-            timerDisplay.style.setProperty('--timer-scale', (fontSizeScale / 100).toString());
-            applyTimerSize._lastWidth = window.innerWidth;
+            const vw = window.innerWidth, vh = window.innerHeight;
+            const len = (timerDisplay.textContent || '').length;
+            const sizeKey = vw + 'x' + vh + '@' + fontSizeScale;
+            const sizeChanged = (applyTimerSize._sizeKey !== sizeKey);
+            const lenChanged = (applyTimerSize._lastLen !== len);
+            if (!sizeChanged && !lenChanged) return; // 바뀐 게 없으면 생략(매 틱 호출돼도 가벼움)
+
+            // (A) 폰트 크기 — 가장 긴 "00:00:00" 기준, 화면폭의 약 82%×배율, 높이 상한
+            if (sizeChanged) {
+                let probe = applyTimerSize._probe;
+                if (!probe) {
+                    probe = document.createElement('span');
+                    probe.textContent = '00:00:00';
+                    probe.className = timerDisplay.className;
+                    probe.style.cssText = 'position:absolute;left:-99999px;top:0;visibility:hidden;pointer-events:none;white-space:nowrap;font-variant-numeric:tabular-nums;';
+                    document.body.appendChild(probe);
+                    applyTimerSize._probe = probe;
+                }
+                probe.style.fontSize = '100px';
+                const refW100 = probe.getBoundingClientRect().width || 1;
+                let widthFrac = 0.82 * (fontSizeScale / 100);
+                if (widthFrac > 0.96) widthFrac = 0.96;
+                if (widthFrac < 0.30) widthFrac = 0.30;
+                let fs = 100 * (vw * widthFrac) / refW100;
+                const maxByHeight = vh * 0.45 * (fontSizeScale / 100);
+                if (fs > maxByHeight) fs = maxByHeight;
+                if (fs < 24) fs = 24;
+                timerDisplay.style.fontSize = fs + 'px';
+                applyTimerSize._sizeKey = sizeKey;
+            }
+
+            // (B) 화면 정중앙 정렬 — 실제 렌더 위치를 측정해 translateX로 보정
+            //     '글자 폭의 중앙 = 화면 중앙'을 보장 (부모 폭/여백과 무관)
+            timerDisplay.style.transform = 'none';
+            const rect = timerDisplay.getBoundingClientRect();
+            const shift = (vw / 2) - (rect.left + rect.width / 2);
+            timerDisplay.style.transform = 'translateX(' + Math.round(shift) + 'px)';
+            applyTimerSize._lastLen = len;
         }
 
         // 로고 및 브랜드 영역 감추기 처리
