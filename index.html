@@ -73,9 +73,11 @@
             color-scheme: dark;
         }
 
-        /* 타이머 숫자 폭 고정 (카운트다운 중 자릿수 흔들림 방지) */
+        /* 타이머 숫자 폭 고정 + 화면폭에 맞춘 자동 크기 (8자리 모노스페이스가 어떤 화면폭에서도 안 넘침) */
         #timerDisplay {
             font-variant-numeric: tabular-nums;
+            /* 기본 11vw × 사용자 배율, 단 16vw를 넘지 않도록 상한 → 좌우 여백 유지하며 항상 정중앙 */
+            font-size: min(calc(11vw * var(--timer-scale, 1)), 16vw);
         }
 
         /* 전광판 흐르는 텍스트 애니메이션 */
@@ -88,6 +90,24 @@
             white-space: nowrap;
             animation: marquee 25s linear infinite;
         }
+
+        /* 발표 순서 추첨 결과 등장 애니메이션 */
+        @keyframes order-pop {
+            from { opacity: 0; transform: translateY(12px) scale(0.97); }
+            to   { opacity: 1; transform: translateY(0) scale(1); }
+        }
+        .order-item { animation: order-pop 0.42s cubic-bezier(0.16, 1, 0.3, 1) both; }
+
+        @media (prefers-reduced-motion: reduce) {
+            .order-item { animation: none !important; }
+        }
+
+        /* 발표 순서 카드: 화면에 맞춰 글자 크기 자동 조절 (--card-fs 는 JS가 설정) */
+        #orderResult .order-item { font-size: var(--card-fs, 26px); gap: 0.5em; padding-left: 0.8em; padding-right: 0.8em; }
+        #orderResult .order-num  { font-size: 1.3em; line-height: 1; width: 2.7em; text-align: right; }
+        #orderResult .order-name { font-size: 1em; line-height: 1.05; text-align: left; }
+        #orderResult .order-tag  { font-size: 0.42em; }
+
     </style>
 </head>
 <body class="relative w-screen h-screen overflow-hidden text-white">
@@ -167,7 +187,7 @@
 
             <!-- 메인 카운트다운 -->
             <div class="relative w-full text-center">
-                <span id="timerDisplay" class="font-mono font-black select-all cursor-pointer leading-none tracking-tight block text-white drop-shadow-[0_10px_30px_rgba(0,0,0,0.5)]" style="font-size: 11vw;">
+                <span id="timerDisplay" class="font-mono font-black select-all cursor-pointer leading-none tracking-tight block text-white drop-shadow-[0_10px_30px_rgba(0,0,0,0.5)]" style="--timer-scale: 1;">
                     00:00:00
                 </span>
             </div>
@@ -221,6 +241,19 @@
             </div>
         </div>
     </div>
+
+    <!-- 발표 순서 추첨 트리거 버튼 (좌측 하단) -->
+    <button onclick="openOrderModal()" class="absolute bottom-6 left-6 z-50 bg-slate-900/80 hover:bg-slate-800 text-slate-200 hover:text-white pl-3 pr-4 py-2.5 rounded-full border border-slate-700 backdrop-blur-md shadow-2xl transition-all hover:scale-105 active:scale-95 flex items-center gap-2 text-sm font-extrabold" title="발표 순서 추첨">
+        <svg class="w-5 h-5 text-cyan-400" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <rect x="3" y="3" width="18" height="18" rx="3" stroke-width="2"></rect>
+            <circle cx="8" cy="8" r="1.4" fill="currentColor"></circle>
+            <circle cx="16" cy="8" r="1.4" fill="currentColor"></circle>
+            <circle cx="12" cy="12" r="1.4" fill="currentColor"></circle>
+            <circle cx="8" cy="16" r="1.4" fill="currentColor"></circle>
+            <circle cx="16" cy="16" r="1.4" fill="currentColor"></circle>
+        </svg>
+        발표 순서
+    </button>
 
     <!-- 3. 우측 하단 컨트롤 트리거 아이콘 (정밀 세부설정 패널) -->
     <button onclick="toggleConfigPanel()" class="absolute bottom-6 right-6 z-50 bg-slate-900/80 hover:bg-slate-800 text-slate-300 hover:text-white p-3 rounded-full border border-slate-700 backdrop-blur-md shadow-2xl transition-all hover:scale-105 active:scale-95" title="정밀 설정창 열기">
@@ -381,6 +414,99 @@
             </div>
 
         </div>
+    </div>
+
+    <!-- 발표 순서 추첨 모달 -->
+    <div id="orderModal" class="fixed inset-0 z-50 bg-slate-950/92 backdrop-blur-lg opacity-0 pointer-events-none transition-all duration-300">
+
+        <!-- ====== 입력 뷰 ====== -->
+        <div id="orderInputView" class="w-full h-full flex items-center justify-center p-4">
+            <div id="orderInputCard" class="w-full max-w-2xl max-h-[92vh] flex flex-col bg-slate-900/90 border border-white/10 rounded-3xl shadow-2xl shadow-black/50 ring-1 ring-cyan-500/10 transform scale-95 transition-all duration-300">
+
+                <!-- 헤더 -->
+                <div class="flex items-start justify-between p-6 pb-4 shrink-0">
+                    <div class="flex items-center gap-3.5">
+                        <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-cyan-500 to-indigo-600 flex items-center justify-center shadow-lg shadow-cyan-900/40">
+                            <svg class="w-7 h-7 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                <rect x="3" y="3" width="18" height="18" rx="4" stroke-width="2"></rect>
+                                <circle cx="8" cy="8" r="1.5" fill="currentColor"></circle>
+                                <circle cx="16" cy="8" r="1.5" fill="currentColor"></circle>
+                                <circle cx="12" cy="12" r="1.5" fill="currentColor"></circle>
+                                <circle cx="8" cy="16" r="1.5" fill="currentColor"></circle>
+                                <circle cx="16" cy="16" r="1.5" fill="currentColor"></circle>
+                            </svg>
+                        </div>
+                        <div>
+                            <h3 class="text-lg md:text-xl font-black text-white leading-tight">발표 순서 추첨</h3>
+                            <p class="text-xs text-slate-400 mt-0.5">조를 추가하거나 빼고 순서를 뽑으세요</p>
+                        </div>
+                    </div>
+                    <button onclick="closeOrderModal()" class="text-slate-500 hover:text-white transition-colors -mt-1 -mr-1 p-1">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                    </button>
+                </div>
+
+                <!-- 본문 -->
+                <div class="px-6 overflow-y-auto">
+                    <div class="flex gap-2">
+                        <input id="orderNameInput" type="text" onkeydown="handleOrderInputKey(event)" autocomplete="off" placeholder="조 이름 입력 후 Enter (예: 13조)" class="flex-1 bg-slate-950/80 border border-white/10 rounded-xl px-4 py-3 text-sm md:text-base text-slate-100 placeholder:text-slate-600 focus:border-cyan-400/70 focus:ring-2 focus:ring-cyan-500/20 focus:outline-none transition-all" style="color-scheme: dark;">
+                        <button onclick="addOrderNameFromInput()" class="bg-white/10 hover:bg-white/15 text-white px-5 py-3 rounded-xl text-sm font-bold transition-all shrink-0 border border-white/10">추가</button>
+                    </div>
+                    <p class="text-[11px] text-slate-500 mt-2 ml-1">Enter 또는 '추가'로 등록 · 쉼표로 여러 개 입력 가능 · 자동 저장</p>
+
+                    <div class="flex items-center justify-between mt-5 mb-2.5">
+                        <span class="text-xs font-bold uppercase tracking-wider text-slate-500">참가 명단 <span id="orderInputCount" class="text-cyan-400 ml-1">0</span></span>
+                        <div class="flex items-center gap-3 text-xs">
+                            <button onclick="fillDefaultTeams()" class="text-slate-400 hover:text-cyan-400 font-semibold transition-colors">1~12조 채우기</button>
+                            <span class="w-px h-3 bg-slate-700"></span>
+                            <button onclick="clearAllNames()" class="text-slate-400 hover:text-rose-400 font-semibold transition-colors">전체 비우기</button>
+                        </div>
+                    </div>
+
+                    <div id="orderNameList" class="flex flex-wrap gap-2 content-start min-h-[4rem] bg-slate-950/40 border border-white/5 rounded-2xl p-3.5"></div>
+                </div>
+
+                <!-- 푸터 -->
+                <div class="p-6 pt-5 shrink-0">
+                    <button onclick="drawOrder()" class="w-full bg-gradient-to-r from-cyan-500 to-indigo-600 hover:from-cyan-400 hover:to-indigo-500 text-white py-4 rounded-2xl text-base md:text-lg font-black tracking-wide shadow-xl shadow-cyan-900/40 transition-all transform hover:scale-[1.015] active:scale-[0.99] flex items-center justify-center gap-2.5">
+                        <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                            <rect x="3" y="3" width="18" height="18" rx="4" stroke-width="2"></rect>
+                            <circle cx="8" cy="8" r="1.5" fill="currentColor"></circle>
+                            <circle cx="16" cy="8" r="1.5" fill="currentColor"></circle>
+                            <circle cx="12" cy="12" r="1.5" fill="currentColor"></circle>
+                            <circle cx="8" cy="16" r="1.5" fill="currentColor"></circle>
+                            <circle cx="16" cy="16" r="1.5" fill="currentColor"></circle>
+                        </svg>
+                        순서 뽑기
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ====== 결과 뷰 (전체 화면) ====== -->
+        <div id="orderResultView" class="w-full h-full flex-col px-6 py-6 md:px-12 md:py-10" style="display:none;">
+            <div class="flex items-end justify-between gap-4 mb-7 shrink-0 flex-wrap">
+                <div>
+                    <p class="text-cyan-400 font-bold tracking-[0.22em] text-[11px] md:text-sm uppercase mb-1.5">Presentation Order</p>
+                    <h2 class="text-3xl md:text-6xl font-black leading-none flex items-baseline gap-3 md:gap-4">
+                        <span class="text-white">발표 순서</span>
+                        <span id="orderResultTitle" class="text-slate-500 text-xl md:text-3xl font-bold"></span>
+                    </h2>
+                </div>
+                <div class="flex gap-2 flex-wrap">
+                    <button onclick="drawOrder()" class="bg-gradient-to-r from-cyan-500 to-indigo-600 hover:from-cyan-400 hover:to-indigo-500 text-white px-5 py-3 rounded-xl text-sm font-bold shadow-lg shadow-cyan-900/30 transition-all transform hover:scale-105 active:scale-95 flex items-center gap-2">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+                        다시 뽑기
+                    </button>
+                    <button onclick="showOrderInputView()" class="bg-white/10 hover:bg-white/15 text-slate-100 border border-white/10 px-5 py-3 rounded-xl text-sm font-bold transition-all">명단 수정</button>
+                    <button onclick="closeOrderModal()" class="bg-white/10 hover:bg-white/15 text-slate-300 border border-white/10 px-5 py-3 rounded-xl text-sm font-bold transition-all">닫기</button>
+                </div>
+            </div>
+            <div id="orderResultWrap" class="flex-1 min-h-0 overflow-hidden">
+                <div id="orderResult" class="grid h-full w-full" style="grid-auto-flow: column; gap: 12px;"></div>
+            </div>
+        </div>
+
     </div>
 
     <!-- 6. 토스트 알림 컴포넌트 -->
@@ -1061,41 +1187,11 @@
         }
 
         function applyTimerSize() {
+            // 실제 폰트 크기는 CSS의 min(calc(11vw * --timer-scale), 16vw) 가 화면폭에 맞춰 자동 제한한다.
+            // 여기서는 사용자 배율(+/- 버튼)만 CSS 변수로 전달 → JS 측정 불필요, 어떤 환경에서도 잘림 없음.
             const timerDisplay = document.getElementById('timerDisplay');
             if (!timerDisplay) return;
-
-            // 원하는 크기(기존 11vw 기준 × 사용자 배율)를 px로 환산
-            const baseVw = 11;
-            const desiredPx = window.innerWidth * (baseVw / 100) * (fontSizeScale / 100);
-
-            // 가장 긴 포맷(00:00:00)의 실제 글자 폭을 화면 밖 임시 요소로 정확히 측정한다.
-            // (화면에 보이는 타이머의 레이아웃/정렬은 전혀 건드리지 않음)
-            let textWidth = 0;
-            try {
-                const cs = window.getComputedStyle(timerDisplay);
-                const probe = document.createElement('span');
-                probe.style.cssText = 'position:absolute;visibility:hidden;white-space:nowrap;left:-9999px;top:0;pointer-events:none;';
-                probe.style.fontFamily = cs.fontFamily;
-                probe.style.fontWeight = cs.fontWeight;
-                probe.style.fontStyle = cs.fontStyle;
-                probe.style.letterSpacing = cs.letterSpacing;
-                probe.style.fontVariantNumeric = 'tabular-nums';
-                probe.style.fontSize = desiredPx + 'px';
-                probe.textContent = '00:00:00';
-                document.body.appendChild(probe);
-                textWidth = probe.offsetWidth;
-                document.body.removeChild(probe);
-            } catch (e) {
-                textWidth = 0;
-            }
-
-            // 화면 폭의 92% 안에 들어오도록, 넘치면 그 비율만큼 축소 → 항상 정중앙 + 잘림 방지
-            const maxWidth = window.innerWidth * 0.92;
-            let finalPx = desiredPx;
-            if (textWidth > 0 && textWidth > maxWidth) {
-                finalPx = desiredPx * (maxWidth / textWidth);
-            }
-            timerDisplay.style.fontSize = finalPx + 'px';
+            timerDisplay.style.setProperty('--timer-scale', (fontSizeScale / 100).toString());
             applyTimerSize._lastWidth = window.innerWidth;
         }
 
@@ -1214,6 +1310,301 @@
                 showToast("전체 화면이 해제되었습니다.");
             }
         }
+
+        /* ---------------- [발표 순서 추첨] ---------------- */
+        let orderNames = [];
+        const ORDER_DEFAULTS_VERSION = 'teams12_v1';
+
+        function defaultTeams() {
+            const arr = [];
+            for (let i = 1; i <= 12; i++) arr.push(i + '조');
+            return arr;
+        }
+
+        function loadOrderNames() {
+            const verOk = safeStorage.getItem('orderDefaultsVersion') === ORDER_DEFAULTS_VERSION;
+            const saved = safeStorage.getItem('orderNamesList');
+            if (!verOk || saved === null) {
+                // 이 버전 최초 실행: 기본 1~12조 채우기
+                orderNames = defaultTeams();
+                saveOrderNames();
+                safeStorage.setItem('orderDefaultsVersion', ORDER_DEFAULTS_VERSION);
+                safeStorage.setItem('orderLastResult', '');
+            } else {
+                orderNames = [];
+                try {
+                    const arr = JSON.parse(saved);
+                    if (Array.isArray(arr)) orderNames = arr.filter(function (x) { return typeof x === 'string' && x.length > 0; });
+                } catch (e) {}
+            }
+        }
+
+        function saveOrderNames() {
+            safeStorage.setItem('orderNamesList', JSON.stringify(orderNames));
+        }
+
+        function fillDefaultTeams() {
+            orderNames = defaultTeams();
+            saveOrderNames();
+            renderOrderNameChips();
+            showToast('1조부터 12조까지 채웠습니다.');
+            playBeep(784, 0.12, 'sine');
+        }
+
+        function handleOrderInputKey(e) {
+            if (e.key === 'Enter') { e.preventDefault(); addOrderNameFromInput(); }
+        }
+
+        function addOrderNameFromInput() {
+            const input = document.getElementById('orderNameInput');
+            if (!input) return;
+            const val = input.value.trim();
+            if (!val) return;
+            val.split(',').map(function (s) { return s.trim(); }).filter(function (s) { return s.length > 0; })
+               .forEach(function (p) { orderNames.push(p); });
+            saveOrderNames();
+            renderOrderNameChips();
+            input.value = '';
+            try { input.focus(); } catch (e) {}
+        }
+
+        function removeOrderName(idx) {
+            orderNames.splice(idx, 1);
+            saveOrderNames();
+            renderOrderNameChips();
+        }
+
+        function clearAllNames() {
+            if (orderNames.length === 0) return;
+            orderNames = [];
+            saveOrderNames();
+            renderOrderNameChips();
+            showToast('명단을 모두 비웠습니다.');
+        }
+
+        function renderOrderNameChips() {
+            const list = document.getElementById('orderNameList');
+            const countEl = document.getElementById('orderInputCount');
+            if (!list) return;
+            list.innerHTML = '';
+            if (orderNames.length === 0) {
+                const empty = document.createElement('span');
+                empty.className = 'text-sm text-slate-600 py-2 px-1';
+                empty.textContent = '명단이 비어 있어요. 위에서 추가하거나 "1~12조 채우기"를 누르세요.';
+                list.appendChild(empty);
+            } else {
+                orderNames.forEach(function (name, idx) {
+                    const chip = document.createElement('span');
+                    chip.className = 'group inline-flex items-center gap-2 rounded-full bg-white/[0.06] hover:bg-white/[0.1] border border-white/10 hover:border-cyan-400/40 pl-3.5 pr-1.5 py-1.5 text-sm font-bold text-slate-100 transition-all';
+                    const txt = document.createElement('span');
+                    txt.className = 'leading-none';
+                    txt.textContent = name;
+                    const del = document.createElement('button');
+                    del.className = 'w-6 h-6 grid place-items-center rounded-full bg-white/10 hover:bg-rose-500 text-slate-400 hover:text-white transition-colors';
+                    del.title = '삭제';
+                    del.innerHTML = '<svg class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6"><path stroke-linecap="round" d="M6 6l12 12M6 18L18 6"/></svg>';
+                    del.onclick = function () { removeOrderName(idx); };
+                    chip.appendChild(txt);
+                    chip.appendChild(del);
+                    list.appendChild(chip);
+                });
+            }
+            if (countEl) countEl.textContent = orderNames.length;
+        }
+
+        function showOrderInputView() {
+            const iv = document.getElementById('orderInputView');
+            const rv = document.getElementById('orderResultView');
+            if (iv) iv.style.display = 'flex';
+            if (rv) rv.style.display = 'none';
+            const input = document.getElementById('orderNameInput');
+            if (input) setTimeout(function () { try { input.focus(); } catch (e) {} }, 100);
+        }
+
+        function showOrderResultView() {
+            const iv = document.getElementById('orderInputView');
+            const rv = document.getElementById('orderResultView');
+            if (iv) iv.style.display = 'none';
+            if (rv) rv.style.display = 'flex';
+            requestAnimationFrame(fitOrderResult);
+            setTimeout(fitOrderResult, 60);
+        }
+
+        function drawOrder() {
+            if (orderNames.length < 2) {
+                showToast('⚠️ 조를 2개 이상 남겨 주세요.');
+                playBeep(330, 0.3, 'sawtooth');
+                showOrderInputView();
+                return;
+            }
+            const shuffled = orderNames.slice();
+            for (let i = shuffled.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                const tmp = shuffled[i]; shuffled[i] = shuffled[j]; shuffled[j] = tmp;
+            }
+            safeStorage.setItem('orderLastResult', JSON.stringify(shuffled));
+            renderOrderResult(shuffled);
+            showOrderResultView();
+            playBeep(659.25, 0.12, 'sine');
+            setTimeout(function () { playBeep(880, 0.18, 'sine'); }, 120);
+            showToast('🎲 발표 순서가 정해졌습니다!');
+        }
+
+        let orderLongestLen = 1;
+
+        function renderOrderResult(names) {
+            const container = document.getElementById('orderResult');
+            const titleEl = document.getElementById('orderResultTitle');
+            if (!container) return;
+
+            orderLongestLen = 1;
+            names.forEach(function (n) { if (n.length > orderLongestLen) orderLongestLen = n.length; });
+
+            // 이름 칸을 '가장 긴 이름' 기준 고정폭(좌측정렬)으로 → 카드마다 번호/구분선/이름 위치가 일치
+            const nameW = (orderLongestLen * 1.2 + 0.5).toFixed(2) + 'em';
+
+            // 1·2·3번만 색 구분 (금 / 분홍 / 초록), 4번부터는 기본 청록→남색
+            const rankColor = ['from-amber-300 to-amber-500', 'from-rose-300 to-rose-500', 'from-emerald-300 to-emerald-500'];
+            const defNum = 'from-cyan-300 to-indigo-400';
+            const defBar = 'from-cyan-400/70 to-indigo-500/60';
+
+            container.innerHTML = '';
+            names.forEach(function (name, idx) {
+                const top3 = idx < 3;
+                const card = document.createElement('div');
+                card.className = 'order-item relative flex items-center justify-center rounded-2xl bg-slate-900/75 border border-white/10 shadow-lg overflow-hidden';
+                if (idx === 0) card.className += ' ring-1 ring-amber-300/40';
+                card.style.animationDelay = (idx * 0.045) + 's';
+
+                // 좌측 진행 방향 액센트 바
+                const bar = document.createElement('span');
+                bar.className = 'absolute left-0 top-2.5 bottom-2.5 w-1 rounded-full bg-gradient-to-b ' + (top3 ? rankColor[idx] : defBar);
+                card.appendChild(bar);
+
+                const num = document.createElement('span');
+                num.className = 'order-num shrink-0 font-black tabular-nums bg-gradient-to-br ' + (top3 ? rankColor[idx] : defNum) + ' bg-clip-text text-transparent';
+                num.textContent = (idx + 1) + '번';
+
+                const divider = document.createElement('span');
+                divider.className = 'shrink-0 w-px bg-white/15';
+                divider.style.height = '1.25em';
+
+                const nm = document.createElement('span');
+                nm.className = 'order-name shrink-0 font-black text-slate-50 whitespace-nowrap';
+                nm.style.width = nameW;
+                nm.textContent = name;
+
+                card.appendChild(num);
+                card.appendChild(divider);
+                card.appendChild(nm);
+
+                if (idx === 0) {
+                    const tag = document.createElement('span');
+                    tag.className = 'order-tag absolute top-1.5 right-2 font-bold text-amber-100 bg-amber-500/20 border border-amber-400/40 rounded-full px-2 py-0.5 whitespace-nowrap';
+                    tag.textContent = '먼저 발표';
+                    card.appendChild(tag);
+                }
+
+                container.appendChild(card);
+            });
+
+            if (titleEl) titleEl.textContent = '총 ' + names.length + '팀';
+        }
+
+        // 결과를 스크롤 없이 한 화면에 맞춤: 조 개수에 따라 열 수와 글자 크기를 자동 계산
+        function fitOrderResult() {
+            const wrap = document.getElementById('orderResultWrap');
+            const grid = document.getElementById('orderResult');
+            if (!wrap || !grid) return;
+            const items = grid.querySelectorAll('.order-item');
+            const N = items.length;
+            if (N === 0) return;
+
+            const W = wrap.clientWidth;
+            const H = wrap.clientHeight;
+            if (W < 20 || H < 20) return;
+
+            const gap = 12;
+            const budgetEm = orderLongestLen * 1.2 + 6.6; // 고정폭 번호칸+구분선+간격/여백+이름칸 가로 예산
+
+            // 가장 큰(읽기 좋은) 카드가 되는 열 수 선택
+            let best = null;
+            const maxC = Math.min(N, 6);
+            for (let C = 1; C <= maxC; C++) {
+                const rows = Math.ceil(N / C);
+                const cellW = (W - gap * (C - 1)) / C;
+                const cellH = (H - gap * (rows - 1)) / rows;
+                if (cellW <= 0 || cellH <= 0) continue;
+                const est = Math.min(cellH / 2.1, cellW / budgetEm);
+                if (!best || est > best.est) best = { C: C, rows: rows, est: est };
+            }
+            if (!best) return;
+
+            grid.style.gridTemplateColumns = 'repeat(' + best.C + ', minmax(0, 1fr))';
+            grid.style.gridTemplateRows = 'repeat(' + best.rows + ', minmax(0, 1fr))';
+
+            let fs = Math.max(10, Math.min(64, best.est));
+            grid.style.setProperty('--card-fs', fs + 'px');
+
+            // 실제 넘침을 측정해 한 글자도 잘리지 않게 미세 축소
+            for (let pass = 0; pass < 8 && fs > 10; pass++) {
+                let overflow = false;
+                for (let k = 0; k < items.length; k++) {
+                    const it = items[k];
+                    if (it.scrollWidth > it.clientWidth + 1 || it.scrollHeight > it.clientHeight + 1) { overflow = true; break; }
+                }
+                if (!overflow) break;
+                fs = fs * 0.93;
+                grid.style.setProperty('--card-fs', fs + 'px');
+            }
+        }
+
+        // 창 크기가 바뀌면 결과 화면을 다시 맞춤
+        window.addEventListener('resize', function () {
+            const rv = document.getElementById('orderResultView');
+            if (rv && rv.style.display && rv.style.display !== 'none') fitOrderResult();
+        });
+
+        function openOrderModal() {
+            const drawer = document.getElementById('configDrawer');
+            if (drawer && !drawer.classList.contains('translate-x-full')) {
+                drawer.classList.add('translate-x-full', 'opacity-0');
+            }
+
+            loadOrderNames();
+            renderOrderNameChips();
+
+            let showedResult = false;
+            const savedResult = safeStorage.getItem('orderLastResult');
+            if (savedResult) {
+                try {
+                    const names = JSON.parse(savedResult);
+                    if (Array.isArray(names) && names.length > 0) {
+                        renderOrderResult(names);
+                        showOrderResultView();
+                        showedResult = true;
+                    }
+                } catch (e) {}
+            }
+            if (!showedResult) showOrderInputView();
+
+            const modal = document.getElementById('orderModal');
+            if (modal) {
+                modal.classList.remove('opacity-0', 'pointer-events-none');
+                const card = document.getElementById('orderInputCard');
+                if (card) { card.classList.remove('scale-95'); card.classList.add('scale-100'); }
+            }
+        }
+
+        function closeOrderModal() {
+            const modal = document.getElementById('orderModal');
+            if (modal) {
+                modal.classList.add('opacity-0', 'pointer-events-none');
+                const card = document.getElementById('orderInputCard');
+                if (card) { card.classList.remove('scale-100'); card.classList.add('scale-95'); }
+            }
+        }
+        /* ------------------------------------------------------------- */
 
         // 초기 시작 강제화 및 보장 (DOM 상태 파악 후 즉시 실행)
         function bootstrapTimer() {
