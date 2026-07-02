@@ -70,6 +70,16 @@
             color-scheme: dark;
         }
 
+        /* 숫자 입력 스핀버튼 숨김 (발표시간 분 입력) */
+        input[type="number"]::-webkit-outer-spin-button,
+        input[type="number"]::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        input[type="number"] {
+            -moz-appearance: textfield;
+        }
+
         /* 타이머 숫자 폭 고정 + 화면폭에 맞춘 자동 크기 (8자리 모노스페이스가 어떤 화면폭에서도 안 넘침) */
         #timerDisplay {
             font-variant-numeric: tabular-nums;
@@ -109,10 +119,12 @@
             .order-item { animation: none !important; }
         }
 
-        /* 발표 순서 카드: 화면에 맞춰 글자 크기 자동 조절 (--card-fs 는 JS가 설정) */
-        #orderResult .order-item { font-size: var(--card-fs, 26px); gap: 0.5em; padding-left: 0.8em; padding-right: 0.8em; }
-        #orderResult .order-num  { font-size: 1.3em; line-height: 1; width: 2.7em; text-align: right; }
-        #orderResult .order-name { font-size: 1em; line-height: 1.05; text-align: left; }
+        /* 발표 순서 카드: 3열 그리드 고정 배치
+           [왼쪽 절반: 번호] [정중앙: 구분선] [오른쪽 절반: 이름]
+           → 구분선은 모든 카드에서 항상 같은 위치(정중앙), 번호는 카드의 1/4 지점에 고정 */
+        #orderResult .order-item { font-size: var(--card-fs, 26px); display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; padding-left: 0.8em; padding-right: 0.8em; }
+        #orderResult .order-num  { font-size: 1.3em; line-height: 1; text-align: center; width: 100%; }
+        #orderResult .order-name { font-size: 1em; line-height: 1.05; text-align: center; width: 100%; }
         #orderResult .order-tag  { font-size: 0.42em; }
 
     </style>
@@ -168,9 +180,6 @@
                 <button id="tabMorning" onclick="switchPresetCase('morning')" class="px-5 py-2.5 rounded-xl text-xs md:text-sm font-extrabold border transition-all duration-300 shadow-md transform hover:scale-105">
                     오전 대회
                 </button>
-                <button id="tabLunch" onclick="switchPresetCase('lunch')" class="px-5 py-2.5 rounded-xl text-xs md:text-sm font-extrabold border transition-all duration-300 shadow-md transform hover:scale-105">
-                    점심 식사
-                </button>
                 <button id="tabAfternoon" onclick="switchPresetCase('afternoon')" class="px-5 py-2.5 rounded-xl text-xs md:text-sm font-extrabold border transition-all duration-300 shadow-md transform hover:scale-105">
                     오후 대회
                 </button>
@@ -178,7 +187,10 @@
                     결과물 제출
                 </button>
                 <button id="tabPresentation" onclick="switchPresetCase('presentation')" class="px-5 py-2.5 rounded-xl text-xs md:text-sm font-extrabold border transition-all duration-300 shadow-md transform hover:scale-105">
-                    🎤 발표 시간 (5분)
+                    🎤 발표 시간 (<span id="tabPresentationMin">3</span>분)
+                </button>
+                <button id="tabQna" onclick="switchPresetCase('qna')" class="px-5 py-2.5 rounded-xl text-xs md:text-sm font-extrabold border transition-all duration-300 shadow-md transform hover:scale-105">
+                    💬 질의응답 (<span id="tabQnaMin">2</span>분)
                 </button>
             </div>
 
@@ -205,7 +217,7 @@
                     <span id="mainPlayPauseIcon">▶</span> <span id="mainPlayPauseText">발표 시작</span>
                 </button>
                 <button onclick="resetDurationTimer()" class="px-6 py-2.5 rounded-xl text-sm font-extrabold bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700/60 transition-all transform hover:scale-105 active:scale-95">
-                    🔄 발표 리셋 (5분)
+                    🔄 리셋 (<span id="resetBtnMin">3</span>분)
                 </button>
             </div>
 
@@ -265,7 +277,7 @@
     <!-- 3. 우측 하단 컨트롤 트리거 아이콘 (정밀 세부설정 패널) -->
     <button onclick="toggleConfigPanel()" class="absolute bottom-6 right-6 z-50 bg-slate-900/80 hover:bg-slate-800 text-slate-300 hover:text-white p-3 rounded-full border border-slate-700 backdrop-blur-md shadow-2xl transition-all hover:scale-105 active:scale-95" title="정밀 설정창 열기">
         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31(2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
         </svg>
     </button>
@@ -287,29 +299,45 @@
         <!-- 주요 컨트롤 섹션 -->
         <div class="space-y-6">
             
-            <!-- 개별 마감값 관리 및 안내 -->
+            <!-- 개별 마감값 관리 및 안내 (설정 안에서 직접 수정 가능하도록 전면 개편) -->
             <div class="bg-slate-900/80 border border-slate-800 p-4 rounded-xl space-y-3">
-                <span class="text-xs font-bold text-slate-400 uppercase block tracking-wider">각 프리셋 마감 시간 관리</span>
+                <span class="text-xs font-bold text-slate-400 uppercase block tracking-wider">각 프리셋 마감 시간 관리 (직접 수정)</span>
                 
-                <div class="space-y-2 text-sm text-slate-300">
+                <div class="space-y-2.5 text-sm text-slate-300">
                     <div class="flex justify-between items-center">
-                        <span>오전 대회 목표 시각 :</span>
-                        <span id="morningTargetText" class="font-mono text-cyan-400 font-bold">12:00</span>
+                        <span>오전 대회 목표 시각</span>
+                        <input type="time" id="morningTargetInput" onchange="updatePresetFromDrawer('morning', this.value)" class="bg-slate-950 border border-slate-700 focus:border-cyan-500 rounded-lg px-2 py-1 text-sm font-mono font-bold text-cyan-400 outline-none w-[110px]">
                     </div>
                     <div class="flex justify-between items-center">
-                        <span>점심 식사 목표 시각 :</span>
-                        <span id="lunchTargetText" class="font-mono text-amber-400 font-bold">12:30</span>
+                        <span>오후 대회 목표 시각</span>
+                        <input type="time" id="afternoonTargetInput" onchange="updatePresetFromDrawer('afternoon', this.value)" class="bg-slate-950 border border-slate-700 focus:border-indigo-500 rounded-lg px-2 py-1 text-sm font-mono font-bold text-indigo-300 outline-none w-[110px]">
                     </div>
                     <div class="flex justify-between items-center">
-                        <span>오후 대회 목표 시각 :</span>
-                        <span id="afternoonTargetText" class="font-mono text-cyan-400 font-bold">14:50</span>
+                        <span>결과물 제출 목표 시각</span>
+                        <input type="time" id="submissionTargetInput" onchange="updatePresetFromDrawer('submission', this.value)" class="bg-slate-950 border border-slate-700 focus:border-rose-500 rounded-lg px-2 py-1 text-sm font-mono font-bold text-rose-300 outline-none w-[110px]">
+                    </div>
+                    <div class="flex justify-between items-center border-t border-slate-800 pt-2.5">
+                        <span>🎤 발표 제한시간 (분)</span>
+                        <div class="flex items-center gap-1.5">
+                            <button onclick="adjustPresentationDuration(-1)" class="w-8 h-8 bg-slate-950 hover:bg-slate-800 rounded-lg border border-slate-700 text-sm font-bold">-</button>
+                            <input type="number" id="presentationMinInput" min="1" max="120" onchange="updatePresentationDuration(this.value)" class="bg-slate-950 border border-slate-700 focus:border-emerald-500 rounded-lg px-2 py-1 text-sm font-mono font-bold text-emerald-400 outline-none w-[64px] text-center">
+                            <button onclick="adjustPresentationDuration(1)" class="w-8 h-8 bg-slate-950 hover:bg-slate-800 rounded-lg border border-slate-700 text-sm font-bold">+</button>
+                        </div>
                     </div>
                     <div class="flex justify-between items-center">
-                        <span>결과물 제출 목표 시각 :</span>
-                        <span id="submissionTargetText" class="font-mono text-cyan-400 font-bold">15:30</span>
+                        <span>💬 질의응답 시간 (분)</span>
+                        <div class="flex items-center gap-1.5">
+                            <button onclick="adjustQnaDuration(-1)" class="w-8 h-8 bg-slate-950 hover:bg-slate-800 rounded-lg border border-slate-700 text-sm font-bold">-</button>
+                            <input type="number" id="qnaMinInput" min="1" max="120" onchange="updateQnaDuration(this.value)" class="bg-slate-950 border border-slate-700 focus:border-violet-500 rounded-lg px-2 py-1 text-sm font-mono font-bold text-violet-300 outline-none w-[64px] text-center">
+                            <button onclick="adjustQnaDuration(1)" class="w-8 h-8 bg-slate-950 hover:bg-slate-800 rounded-lg border border-slate-700 text-sm font-bold">+</button>
+                        </div>
                     </div>
                 </div>
-                <p class="text-[11px] text-slate-500 pt-1">💡 메인 화면의 각 탭을 누른 후, 중앙 of "마감 시각" 버튼을 누르시면 해당 카테고리의 마감 시간이 즉시 업데이트 및 저장됩니다.</p>
+                <button onclick="resetPresetsToDefault()" class="w-full mt-1 bg-slate-800 hover:bg-rose-900/60 border border-slate-700 hover:border-rose-600/60 text-slate-300 hover:text-rose-200 py-2 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1.5">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+                    모든 시간 기본값으로 되돌리기
+                </button>
+                <p class="text-[11px] text-slate-500 pt-1">💡 이곳에서 값을 바꾸면 즉시 저장·적용됩니다. 메인 화면 각 탭 아래의 "마감 시각" 버튼으로도 수정할 수 있습니다.</p>
             </div>
 
             <!-- 공지사항 텍스트 관리 -->
@@ -408,7 +436,7 @@
 
                 <!-- 빠른 타겟 프리셋 선언 -->
                 <div class="flex gap-2 justify-center py-2">
-                    <button onclick="setModalPreset('12:00')" class="bg-slate-800/60 hover:bg-cyan-950 border border-slate-700 hover:border-cyan-800 text-xs text-slate-300 px-3 py-1.5 rounded-md">12:00 점심</button>
+                    <button onclick="setModalPreset('12:00')" class="bg-slate-800/60 hover:bg-cyan-950 border border-slate-700 hover:border-cyan-800 text-xs text-slate-300 px-3 py-1.5 rounded-md">12:00 정오</button>
                     <button onclick="setModalPreset('15:00')" class="bg-slate-800/60 hover:bg-cyan-950 border border-slate-700 hover:border-cyan-800 text-xs text-slate-300 px-3 py-1.5 rounded-md">15:00 마감</button>
                     <button onclick="setModalPreset('17:00')" class="bg-slate-800/60 hover:bg-cyan-950 border border-slate-700 hover:border-cyan-800 text-xs text-slate-300 px-3 py-1.5 rounded-md">17:00 종료</button>
                 </div>
@@ -456,7 +484,7 @@
                 <!-- 본문 -->
                 <div class="px-6 overflow-y-auto">
                     <div class="flex gap-2">
-                        <input id="orderNameInput" type="text" onkeydown="handleOrderInputKey(event)" autocomplete="off" placeholder="조 이름 입력 후 Enter (예: 13조)" class="flex-1 bg-slate-950/80 border border-white/10 rounded-xl px-4 py-3 text-sm md:text-base text-slate-100 placeholder:text-slate-600 focus:border-cyan-400/70 focus:ring-2 focus:ring-cyan-500/20 focus:outline-none transition-all" style="color-scheme: dark;">
+                        <input id="orderNameInput" type="text" onkeydown="handleOrderInputKey(event)" autocomplete="off" placeholder="조 이름 입력 후 Enter (예: 11조)" class="flex-1 bg-slate-950/80 border border-white/10 rounded-xl px-4 py-3 text-sm md:text-base text-slate-100 placeholder:text-slate-600 focus:border-cyan-400/70 focus:ring-2 focus:ring-cyan-500/20 focus:outline-none transition-all" style="color-scheme: dark;">
                         <button onclick="addOrderNameFromInput()" class="bg-white/10 hover:bg-white/15 text-white px-5 py-3 rounded-xl text-sm font-bold transition-all shrink-0 border border-white/10">추가</button>
                     </div>
                     <p class="text-[11px] text-slate-500 mt-2 ml-1">Enter 또는 '추가'로 등록 · 쉼표로 여러 개 입력 가능 · 자동 저장</p>
@@ -464,7 +492,7 @@
                     <div class="flex items-center justify-between mt-5 mb-2.5">
                         <span class="text-xs font-bold uppercase tracking-wider text-slate-500">참가 명단 <span id="orderInputCount" class="text-cyan-400 ml-1">0</span></span>
                         <div class="flex items-center gap-3 text-xs">
-                            <button onclick="fillDefaultTeams()" class="text-slate-400 hover:text-cyan-400 font-semibold transition-colors">1~12조 채우기</button>
+                            <button onclick="fillDefaultTeams()" class="text-slate-400 hover:text-cyan-400 font-semibold transition-colors">1~10조 채우기</button>
                             <span class="w-px h-3 bg-slate-700"></span>
                             <button onclick="clearAllNames()" class="text-slate-400 hover:text-rose-400 font-semibold transition-colors">전체 비우기</button>
                         </div>
@@ -543,13 +571,12 @@
         };
 
         // 글로벌 상태 변수 관리
-        let activeCase = 'morning'; // 'morning' | 'lunch' | 'afternoon' | 'submission' | 'presentation'
+        let activeCase = 'morning'; // 'morning' | 'afternoon' | 'submission' | 'presentation' | 'qna'
         let activeMode = 'target'; // 'target' (마감 시각 지정) or 'duration' (제한시간)
         
         // 프리셋별 목표시간 보관소 (요청하신 신규 타겟 데이터 세팅)
         let presets = {
             morning: { h: 12, m: 0 },
-            lunch: { h: 12, m: 30 },
             afternoon: { h: 14, m: 50 },
             submission: { h: 15, m: 30 }
         };
@@ -559,11 +586,21 @@
         let targetMinute = 0;
         let setupStartTime = null; // 진행률 계산용 마감 기준 시간 설정 당시 시점
 
-        // 발표 시간 전용 변수 (5분 고정)
-        let durationLeft = 300; // 5분 = 300초
-        let durationMax = 300; 
+        // 제한시간(duration) 타이머 변수 — 발표(기본 3분) / 질의응답(기본 2분), 설정에서 변경 가능
+        let presentationDurationMin = 3; // 발표 제한시간 (분)
+        let qnaDurationMin = 2;          // 질의응답 시간 (분)
+        let durationLeft = 180;
+        let durationMax = 180; 
         let isDurationRunning = false;
         let durationInterval = null;
+
+        // 현재 활성 duration 케이스의 설정 분/라벨
+        function activeDurationMin() {
+            return activeCase === 'qna' ? qnaDurationMin : presentationDurationMin;
+        }
+        function durationLabel() {
+            return activeCase === 'qna' ? '질의응답' : '발표';
+        }
 
         // 기타 옵션들
         let isOverlayVisible = true;
@@ -574,35 +611,33 @@
         function loadSettings() {
             try {
                 // [매우 중요] 버전 체크를 통해 예전 꼬인 캐시 마감 시각들을 이번 규격 기본값으로 강제 포스 오버라이트합니다.
-                const PRESET_VERSION = "2026_v5_final"; 
+                const PRESET_VERSION = "2026_v6_no_lunch"; 
                 const savedVersion = safeStorage.getItem('preset_version');
 
                 if (savedVersion !== PRESET_VERSION) {
                     // 예전 로컬 디스크 데이터 무시하고 새 기본값 강제 할당 및 쓰기
                     presets = {
                         morning: { h: 12, m: 0 },
-                        lunch: { h: 12, m: 30 },
                         afternoon: { h: 14, m: 50 },
                         submission: { h: 15, m: 30 }
                     };
                     safeStorage.setItem('preset_morning', JSON.stringify(presets.morning));
-                    safeStorage.setItem('preset_lunch', JSON.stringify(presets.lunch));
                     safeStorage.setItem('preset_afternoon', JSON.stringify(presets.afternoon));
                     safeStorage.setItem('preset_submission', JSON.stringify(presets.submission));
                     safeStorage.setItem('preset_version', PRESET_VERSION);
+                    safeStorage.setItem('presentationDurationMin', 3);
+                    safeStorage.setItem('qnaDurationMin', 2);
                     
                     activeCase = 'morning';
                     safeStorage.setItem('activeCase', 'morning');
                 } else {
                     // 동일 버전일 경우에만 안전하게 로드
                     const savedCase = safeStorage.getItem('activeCase');
-                    if (savedCase) activeCase = savedCase;
+                    const validCases = ['morning', 'afternoon', 'submission', 'presentation', 'qna'];
+                    if (savedCase && validCases.indexOf(savedCase) !== -1) activeCase = savedCase;
 
                     const savedMorning = safeStorage.getItem('preset_morning');
                     if (savedMorning) presets.morning = JSON.parse(savedMorning);
-
-                    const savedLunch = safeStorage.getItem('preset_lunch');
-                    if (savedLunch) presets.lunch = JSON.parse(savedLunch);
 
                     const savedAfternoon = safeStorage.getItem('preset_afternoon');
                     if (savedAfternoon) presets.afternoon = JSON.parse(savedAfternoon);
@@ -611,9 +646,27 @@
                     if (savedSubmission) presets.submission = JSON.parse(savedSubmission);
                 }
 
+                // 발표 제한시간(분) 로드 (기본 3분)
+                const savedPresMin = safeStorage.getItem('presentationDurationMin');
+                if (savedPresMin !== null) {
+                    const parsed = parseInt(savedPresMin);
+                    if (!isNaN(parsed) && parsed >= 1 && parsed <= 120) presentationDurationMin = parsed;
+                }
+                // 질의응답 시간(분) 로드 (기본 2분)
+                const savedQnaMin = safeStorage.getItem('qnaDurationMin');
+                if (savedQnaMin !== null) {
+                    const parsedQ = parseInt(savedQnaMin);
+                    if (!isNaN(parsedQ) && parsedQ >= 1 && parsedQ <= 120) qnaDurationMin = parsedQ;
+                }
+                durationMax = activeDurationMin() * 60;
+                durationLeft = durationMax;
+
                 // 타이머 및 제어 세팅
                 const savedDurLeft = safeStorage.getItem('durationLeft');
-                if (savedDurLeft !== null) durationLeft = parseInt(savedDurLeft);
+                if (savedDurLeft !== null) {
+                    const parsedLeft = parseInt(savedDurLeft);
+                    if (!isNaN(parsedLeft) && parsedLeft >= 0 && parsedLeft <= durationMax) durationLeft = parsedLeft;
+                }
 
                 const savedOverlay = safeStorage.getItem('isOverlayVisible');
                 if (savedOverlay !== null) isOverlayVisible = savedOverlay === 'true';
@@ -648,10 +701,11 @@
             try {
                 safeStorage.setItem('activeCase', activeCase);
                 safeStorage.setItem('preset_morning', JSON.stringify(presets.morning));
-                safeStorage.setItem('preset_lunch', JSON.stringify(presets.lunch));
                 safeStorage.setItem('preset_afternoon', JSON.stringify(presets.afternoon));
                 safeStorage.setItem('preset_submission', JSON.stringify(presets.submission));
                 
+                safeStorage.setItem('presentationDurationMin', presentationDurationMin);
+                safeStorage.setItem('qnaDurationMin', qnaDurationMin);
                 safeStorage.setItem('durationLeft', durationLeft);
                 safeStorage.setItem('isOverlayVisible', isOverlayVisible);
                 safeStorage.setItem('soundEnabled', soundEnabled);
@@ -693,22 +747,151 @@
             }
         }
 
-        // 프리셋 수동 저장 시 세부 텍스트 업데이트
+        // 설정 서랍의 입력값 및 발표/질의응답 시간 표시 동기화
         function updateConfigTexts() {
-            const morningText = document.getElementById('morningTargetText');
-            const lunchText = document.getElementById('lunchTargetText');
-            const afternoonText = document.getElementById('afternoonTargetText');
-            const submissionText = document.getElementById('submissionTargetText');
+            const morningInput = document.getElementById('morningTargetInput');
+            const afternoonInput = document.getElementById('afternoonTargetInput');
+            const submissionInput = document.getElementById('submissionTargetInput');
+            const presMinInput = document.getElementById('presentationMinInput');
+            const qnaMinInputEl = document.getElementById('qnaMinInput');
 
-            if (morningText) morningText.innerText = `${String(presets.morning.h).padStart(2, '0')}:${String(presets.morning.m).padStart(2, '0')}`;
-            if (lunchText) lunchText.innerText = `${String(presets.lunch.h).padStart(2, '0')}:${String(presets.lunch.m).padStart(2, '0')}`;
-            if (afternoonText) afternoonText.innerText = `${String(presets.afternoon.h).padStart(2, '0')}:${String(presets.afternoon.m).padStart(2, '0')}`;
-            if (submissionText) submissionText.innerText = `${String(presets.submission.h).padStart(2, '0')}:${String(presets.submission.m).padStart(2, '0')}`;
+            if (morningInput) morningInput.value = `${String(presets.morning.h).padStart(2, '0')}:${String(presets.morning.m).padStart(2, '0')}`;
+            if (afternoonInput) afternoonInput.value = `${String(presets.afternoon.h).padStart(2, '0')}:${String(presets.afternoon.m).padStart(2, '0')}`;
+            if (submissionInput) submissionInput.value = `${String(presets.submission.h).padStart(2, '0')}:${String(presets.submission.m).padStart(2, '0')}`;
+            if (presMinInput) presMinInput.value = presentationDurationMin;
+            if (qnaMinInputEl) qnaMinInputEl.value = qnaDurationMin;
+
+            // 메인 화면 탭/리셋 버튼의 시간 표기 동기화
+            const tabMin = document.getElementById('tabPresentationMin');
+            const tabQMin = document.getElementById('tabQnaMin');
+            const resetMin = document.getElementById('resetBtnMin');
+            if (tabMin) tabMin.innerText = presentationDurationMin;
+            if (tabQMin) tabQMin.innerText = qnaDurationMin;
+            if (resetMin) resetMin.innerText = activeDurationMin();
         }
+
+        /* ---------------- [설정 서랍 내 직접 수정 핸들러] ---------------- */
+        // 설정 서랍에서 마감 시각 프리셋을 직접 수정
+        function updatePresetFromDrawer(caseName, value) {
+            if (!value || !presets[caseName]) return;
+            const [h, m] = value.split(':').map(Number);
+            if (isNaN(h) || isNaN(m)) return;
+
+            presets[caseName].h = h;
+            presets[caseName].m = m;
+
+            // 현재 활성 프리셋이면 즉시 화면에 반영
+            if (activeCase === caseName && activeMode === 'target') {
+                targetHour = h;
+                targetMinute = m;
+                setupStartTime = new Date();
+                updateMasterLoop();
+            }
+
+            updateConfigTexts();
+            saveSettings();
+
+            let label = "";
+            if (caseName === 'morning') label = "오전 대회";
+            if (caseName === 'afternoon') label = "오후 대회";
+            if (caseName === 'submission') label = "결과물 제출";
+            showToast(`🎯 ${label} 마감 시각이 ${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}으로 저장되었습니다.`);
+            playBeep(880, 0.12, 'sine');
+        }
+
+        // 설정 서랍에서 발표 제한시간(분)을 직접 수정
+        function updatePresentationDuration(value) {
+            let min = parseInt(value);
+            if (isNaN(min)) min = 3;
+            if (min < 1) min = 1;
+            if (min > 120) min = 120;
+
+            presentationDurationMin = min;
+
+            // 현재 발표 탭이 활성화된 상태면 즉시 반영
+            if (activeCase === 'presentation') {
+                durationMax = min * 60;
+                if (!isDurationRunning) {
+                    durationLeft = durationMax;
+                } else if (durationLeft > durationMax) {
+                    durationLeft = durationMax;
+                }
+                updateMasterLoop();
+            }
+
+            updateConfigTexts();
+            saveSettings();
+
+            showToast(`🎤 발표 제한시간이 ${min}분으로 변경되었습니다.`);
+            playBeep(880, 0.12, 'sine');
+        }
+
+        function adjustPresentationDuration(direction) {
+            updatePresentationDuration(presentationDurationMin + direction);
+        }
+
+        // 설정 서랍에서 질의응답 시간(분)을 직접 수정
+        function updateQnaDuration(value) {
+            let min = parseInt(value);
+            if (isNaN(min)) min = 2;
+            if (min < 1) min = 1;
+            if (min > 120) min = 120;
+
+            qnaDurationMin = min;
+
+            // 현재 질의응답 탭이 활성화된 상태면 즉시 반영
+            if (activeCase === 'qna') {
+                durationMax = min * 60;
+                if (!isDurationRunning) {
+                    durationLeft = durationMax;
+                } else if (durationLeft > durationMax) {
+                    durationLeft = durationMax;
+                }
+                updateMasterLoop();
+            }
+
+            updateConfigTexts();
+            saveSettings();
+
+            showToast(`💬 질의응답 시간이 ${min}분으로 변경되었습니다.`);
+            playBeep(880, 0.12, 'sine');
+        }
+
+        function adjustQnaDuration(direction) {
+            updateQnaDuration(qnaDurationMin + direction);
+        }
+
+        // 모든 시간 설정을 기본값으로 되돌리기
+        // 기본값: 오전 12:00 / 오후 14:50 / 제출 15:30 / 발표 3분 / 질의응답 2분
+        function resetPresetsToDefault() {
+            presets = {
+                morning: { h: 12, m: 0 },
+                afternoon: { h: 14, m: 50 },
+                submission: { h: 15, m: 30 }
+            };
+            presentationDurationMin = 3;
+            qnaDurationMin = 2;
+            durationMax = activeDurationMin() * 60;
+            if (!isDurationRunning) durationLeft = durationMax;
+
+            // 현재 활성 프리셋에 즉시 반영
+            if (activeMode === 'target' && presets[activeCase]) {
+                targetHour = presets[activeCase].h;
+                targetMinute = presets[activeCase].m;
+                setupStartTime = null;
+            }
+
+            updateConfigTexts();
+            saveSettings();
+            updateMasterLoop();
+            showToast("♻️ 모든 시간이 기본값으로 되돌아갔습니다. (오전 12:00 · 오후 14:50 · 제출 15:30 · 발표 3분 · 질의응답 2분)");
+            playBeep(523.25, 0.15, 'sine');
+        }
+        /* ------------------------------------------------------------- */
 
         // 탭 전환 시 UI 및 변수 매핑 처리 (매우 밝고 투명한 테크 스타일 탭 디자인 오버레이)
         function applyActiveCaseLogic(showFeedback = true) {
-            const tabIds = ['tabMorning', 'tabLunch', 'tabAfternoon', 'tabSubmission', 'tabPresentation'];
+            const tabIds = ['tabMorning', 'tabAfternoon', 'tabSubmission', 'tabPresentation', 'tabQna'];
             tabIds.forEach(id => {
                 const btn = document.getElementById(id);
                 if (btn) {
@@ -732,16 +915,6 @@
                 if (quickEditBtn) quickEditBtn.style.display = 'inline-flex';
                 stopDurationInterval();
             } 
-            else if (activeCase === 'lunch') {
-                const tabLunch = document.getElementById('tabLunch');
-                if (tabLunch) tabLunch.className = "px-5 py-2.5 rounded-xl text-xs md:text-sm font-extrabold border transition-all duration-300 shadow-md transform hover:scale-105 bg-amber-500 border-amber-400 text-white shadow-lg shadow-amber-500/25";
-                activeMode = 'target';
-                targetHour = presets.lunch.h;
-                targetMinute = presets.lunch.m;
-                setupStartTime = null;
-                if (quickEditBtn) quickEditBtn.style.display = 'inline-flex';
-                stopDurationInterval();
-            }
             else if (activeCase === 'afternoon') {
                 const tabAfternoon = document.getElementById('tabAfternoon');
                 if (tabAfternoon) tabAfternoon.className = "px-5 py-2.5 rounded-xl text-xs md:text-sm font-extrabold border transition-all duration-300 shadow-md transform hover:scale-105 bg-indigo-500 border-indigo-400 text-white shadow-lg shadow-indigo-500/25";
@@ -762,19 +935,25 @@
                 if (quickEditBtn) quickEditBtn.style.display = 'inline-flex';
                 stopDurationInterval();
             } 
-            else if (activeCase === 'presentation') {
-                const tabPresentation = document.getElementById('tabPresentation');
-                if (tabPresentation) tabPresentation.className = "px-5 py-2.5 rounded-xl text-xs md:text-sm font-extrabold border transition-all duration-300 shadow-md transform hover:scale-105 bg-emerald-500 border-emerald-400 text-white shadow-lg shadow-emerald-500/25";
+            else if (activeCase === 'presentation' || activeCase === 'qna') {
+                const activeTab = document.getElementById(activeCase === 'qna' ? 'tabQna' : 'tabPresentation');
+                if (activeTab) {
+                    const color = activeCase === 'qna'
+                        ? 'bg-violet-500 border-violet-400 shadow-violet-500/25'
+                        : 'bg-emerald-500 border-emerald-400 shadow-emerald-500/25';
+                    activeTab.className = "px-5 py-2.5 rounded-xl text-xs md:text-sm font-extrabold border transition-all duration-300 shadow-md transform hover:scale-105 text-white shadow-lg " + color;
+                }
                 activeMode = 'duration';
                 
-                durationLeft = 300; 
-                durationMax = 300;
+                durationLeft = activeDurationMin() * 60; 
+                durationMax = activeDurationMin() * 60;
                 if (quickEditBtn) quickEditBtn.style.display = 'none'; 
 
                 if (presentationArea) presentationArea.classList.remove('hidden');
                 
                 stopDurationInterval();
                 resetDurationBtnUI();
+                updateConfigTexts(); // 리셋 버튼의 분 표기 동기화
             }
 
             // 모달 내 시간 인풋 값 동기화
@@ -785,10 +964,10 @@
             if (showFeedback) {
                 let caseLabel = "";
                 if (activeCase === 'morning') caseLabel = "오전 대회 (마감 카운트다운)";
-                if (activeCase === 'lunch') caseLabel = "점심 식사 (마감 카운트다운)";
                 if (activeCase === 'afternoon') caseLabel = "오후 대회 (마감 카운트다운)";
                 if (activeCase === 'submission') caseLabel = "결과물 제출 (마감 카운트다운)";
-                if (activeCase === 'presentation') caseLabel = "🎤 발표 시간 (5분 타이머)";
+                if (activeCase === 'presentation') caseLabel = `🎤 발표 시간 (${presentationDurationMin}분 타이머)`;
+                if (activeCase === 'qna') caseLabel = `💬 질의응답 (${qnaDurationMin}분 타이머)`;
                 
                 showToast(`🚀 ${caseLabel} 프리셋이 설정되었습니다.`);
                 playBeep(784, 0.15, 'sine');
@@ -839,7 +1018,6 @@
 
             let prefix = "";
             if (activeCase === 'morning') prefix = "오전 마감";
-            if (activeCase === 'lunch') prefix = "점심 마감";
             if (activeCase === 'afternoon') prefix = "오후 마감";
             if (activeCase === 'submission') prefix = "제출 마감";
 
@@ -897,7 +1075,9 @@
             const targetIndicator = document.getElementById('targetIndicator');
 
             if (targetIndicator) {
-                targetIndicator.innerText = `🎤 발표 제한시간 (5분 고정)`;
+                targetIndicator.innerText = activeCase === 'qna'
+                    ? `💬 질의응답 시간 (${qnaDurationMin}분)`
+                    : `🎤 발표 제한시간 (${presentationDurationMin}분)`;
             }
 
             if (!timerDisplay) return;
@@ -923,7 +1103,7 @@
                 if (isDurationRunning) {
                     stopDurationInterval();
                     if (soundEnabled) triggerEndAlertSound();
-                    showToast("⏳ 발표 5분 제한시간이 완전히 끝났습니다!");
+                    showToast(`⏳ ${durationLabel()} ${activeDurationMin()}분 제한시간이 완전히 끝났습니다!`);
                 }
             }
         }
@@ -942,7 +1122,6 @@
             const modalTitle = document.getElementById('quickModalTitle');
             if (modalTitle) {
                 if (activeCase === 'morning') modalTitle.innerText = "오전 대회 마감 시각 설정";
-                if (activeCase === 'lunch') modalTitle.innerText = "점심 식사 마감 시각 설정";
                 if (activeCase === 'afternoon') modalTitle.innerText = "오후 대회 마감 시각 설정";
                 if (activeCase === 'submission') modalTitle.innerText = "결과물 제출 마감 시각 설정";
             }
@@ -1027,9 +1206,6 @@
             if (activeCase === 'morning') {
                 presets.morning.h = parsedHour;
                 presets.morning.m = parsedMinute;
-            } else if (activeCase === 'lunch') {
-                presets.lunch.h = parsedHour;
-                presets.lunch.m = parsedMinute;
             } else if (activeCase === 'afternoon') {
                 presets.afternoon.h = parsedHour;
                 presets.afternoon.m = parsedMinute;
@@ -1061,7 +1237,7 @@
             const mainPlayPauseBtn = document.getElementById('mainPlayPauseBtn');
 
             if (mainPlayPauseIcon) mainPlayPauseIcon.innerText = '⏸';
-            if (mainPlayPauseText) mainPlayPauseText.innerText = '발표 일시정지';
+            if (mainPlayPauseText) mainPlayPauseText.innerText = durationLabel() + ' 일시정지';
             if (mainPlayPauseBtn) {
                 mainPlayPauseBtn.className = "px-6 py-2.5 rounded-xl text-sm font-extrabold bg-amber-600 hover:bg-amber-500 shadow-lg shadow-amber-950/40 transition-all flex items-center gap-2 transform hover:scale-105 active:scale-95";
             }
@@ -1089,7 +1265,7 @@
             const mainPlayPauseBtn = document.getElementById('mainPlayPauseBtn');
 
             if (mainPlayPauseIcon) mainPlayPauseIcon.innerText = '▶';
-            if (mainPlayPauseText) mainPlayPauseText.innerText = '발표 시작';
+            if (mainPlayPauseText) mainPlayPauseText.innerText = durationLabel() + ' 시작';
             if (mainPlayPauseBtn) {
                 mainPlayPauseBtn.className = "px-6 py-2.5 rounded-xl text-sm font-extrabold bg-emerald-600 hover:bg-emerald-500 shadow-lg shadow-emerald-950/40 transition-all flex items-center gap-2 transform hover:scale-105 active:scale-95";
             }
@@ -1098,25 +1274,26 @@
         function toggleDurationTimer() {
             if (isDurationRunning) {
                 stopDurationInterval();
-                showToast("발표 타이머가 일시정지 되었습니다.");
+                showToast(`${durationLabel()} 타이머가 일시정지 되었습니다.`);
                 playBeep(650, 0.1, 'sine');
             } else {
                 if (durationLeft <= 0) {
-                    durationLeft = 300; 
+                    durationLeft = activeDurationMin() * 60; 
                 }
                 startDurationInterval();
-                showToast("🎤 발표 심사 5분 타이머가 기동되었습니다!");
+                showToast(`⏱️ ${durationLabel()} ${activeDurationMin()}분 타이머가 기동되었습니다!`);
                 playBeep(880, 0.2, 'sine');
             }
         }
 
         function resetDurationTimer() {
             stopDurationInterval();
-            durationLeft = 300; 
-            durationMax = 300;
+            durationLeft = activeDurationMin() * 60; 
+            durationMax = activeDurationMin() * 60;
             saveSettings();
             updateMasterLoop();
-            showToast("🎤 발표 타이머를 정확히 5분(05:00)으로 초기화했습니다.");
+            const mm = String(activeDurationMin()).padStart(2, '0');
+            showToast(`⏱️ ${durationLabel()} 타이머를 정확히 ${activeDurationMin()}분(${mm}:00)으로 초기화했습니다.`);
             playBeep(523.25, 0.15, 'sine');
         }
 
@@ -1124,6 +1301,8 @@
             const drawer = document.getElementById('configDrawer');
             if (drawer) {
                 if (drawer.classList.contains('translate-x-full')) {
+                    // 열기 전에 최신 설정값으로 인풋 동기화
+                    updateConfigTexts();
                     drawer.classList.remove('translate-x-full', 'opacity-0');
                 } else {
                     drawer.classList.add('translate-x-full', 'opacity-0');
@@ -1355,11 +1534,11 @@
 
         /* ---------------- [발표 순서 추첨] ---------------- */
         let orderNames = [];
-        const ORDER_DEFAULTS_VERSION = 'teams12_v1';
+        const ORDER_DEFAULTS_VERSION = 'teams10_v1';
 
         function defaultTeams() {
             const arr = [];
-            for (let i = 1; i <= 12; i++) arr.push(i + '조');
+            for (let i = 1; i <= 10; i++) arr.push(i + '조');
             return arr;
         }
 
@@ -1367,7 +1546,7 @@
             const verOk = safeStorage.getItem('orderDefaultsVersion') === ORDER_DEFAULTS_VERSION;
             const saved = safeStorage.getItem('orderNamesList');
             if (!verOk || saved === null) {
-                // 이 버전 최초 실행: 기본 1~12조 채우기
+                // 이 버전 최초 실행: 기본 1~10조 채우기
                 orderNames = defaultTeams();
                 saveOrderNames();
                 safeStorage.setItem('orderDefaultsVersion', ORDER_DEFAULTS_VERSION);
@@ -1389,7 +1568,7 @@
             orderNames = defaultTeams();
             saveOrderNames();
             renderOrderNameChips();
-            showToast('1조부터 12조까지 채웠습니다.');
+            showToast('1조부터 10조까지 채웠습니다.');
             playBeep(784, 0.12, 'sine');
         }
 
@@ -1432,7 +1611,7 @@
             if (orderNames.length === 0) {
                 const empty = document.createElement('span');
                 empty.className = 'text-sm text-slate-600 py-2 px-1';
-                empty.textContent = '명단이 비어 있어요. 위에서 추가하거나 "1~12조 채우기"를 누르세요.';
+                empty.textContent = '명단이 비어 있어요. 위에서 추가하거나 "1~10조 채우기"를 누르세요.';
                 list.appendChild(empty);
             } else {
                 orderNames.forEach(function (name, idx) {
@@ -1502,8 +1681,7 @@
             orderLongestLen = 1;
             names.forEach(function (n) { if (n.length > orderLongestLen) orderLongestLen = n.length; });
 
-            // 이름 칸을 '가장 긴 이름' 기준 고정폭(좌측정렬)으로 → 카드마다 번호/구분선/이름 위치가 일치
-            const nameW = (orderLongestLen * 1.2 + 0.5).toFixed(2) + 'em';
+            // 번호·구분선·이름 묶음이 각 카드(열)의 정중앙에 오도록 고정폭 없이 자연 폭으로 배치
 
             // 1·2·3번만 색 구분 (금 / 분홍 / 초록), 4번부터는 기본 청록→남색
             const rankColor = ['from-amber-300 to-amber-500', 'from-rose-300 to-rose-500', 'from-emerald-300 to-emerald-500'];
@@ -1514,7 +1692,7 @@
             names.forEach(function (name, idx) {
                 const top3 = idx < 3;
                 const card = document.createElement('div');
-                card.className = 'order-item relative flex items-center justify-center rounded-2xl bg-slate-900/75 border border-white/10 shadow-lg overflow-hidden';
+                card.className = 'order-item relative rounded-2xl bg-slate-900/75 border border-white/10 shadow-lg overflow-hidden';
                 if (idx === 0) card.className += ' ring-1 ring-amber-300/40';
                 card.style.animationDelay = (idx * 0.045) + 's';
 
@@ -1524,16 +1702,15 @@
                 card.appendChild(bar);
 
                 const num = document.createElement('span');
-                num.className = 'order-num shrink-0 font-black tabular-nums bg-gradient-to-br ' + (top3 ? rankColor[idx] : defNum) + ' bg-clip-text text-transparent';
+                num.className = 'order-num font-black tabular-nums bg-gradient-to-br ' + (top3 ? rankColor[idx] : defNum) + ' bg-clip-text text-transparent';
                 num.textContent = (idx + 1) + '번';
 
                 const divider = document.createElement('span');
-                divider.className = 'shrink-0 w-px bg-white/15';
+                divider.className = 'w-px bg-white/15 justify-self-center';
                 divider.style.height = '1.25em';
 
                 const nm = document.createElement('span');
-                nm.className = 'order-name shrink-0 font-black text-slate-50 whitespace-nowrap';
-                nm.style.width = nameW;
+                nm.className = 'order-name font-black text-slate-50 whitespace-nowrap';
                 nm.textContent = name;
 
                 card.appendChild(num);
