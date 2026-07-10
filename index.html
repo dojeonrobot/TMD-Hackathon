@@ -162,7 +162,7 @@
             </div>
             <!-- 밑줄 제거, 맨 앞 2026 추가 -->
             <h1 class="text-3xl md:text-5xl font-black tracking-tight text-white drop-shadow-md">
-                2026 강남구 AI 문제해결 해커톤
+                2026 강남구 AI 문제 해결 해커톤
             </h1>
         </div>
 
@@ -473,7 +473,7 @@
                         </div>
                         <div>
                             <h3 class="text-lg md:text-xl font-black text-white leading-tight">발표 순서 추첨</h3>
-                            <p class="text-xs text-slate-400 mt-0.5">조를 추가하거나 빼고 순서를 뽑으세요</p>
+                            <p class="text-xs text-slate-400 mt-0.5">팀을 추가하거나 빼고 순서를 뽑으세요</p>
                         </div>
                     </div>
                     <button onclick="closeOrderModal()" class="text-slate-500 hover:text-white transition-colors -mt-1 -mr-1 p-1">
@@ -484,7 +484,7 @@
                 <!-- 본문 -->
                 <div class="px-6 overflow-y-auto">
                     <div class="flex gap-2">
-                        <input id="orderNameInput" type="text" onkeydown="handleOrderInputKey(event)" autocomplete="off" placeholder="조 이름 입력 후 Enter (예: 11조)" class="flex-1 bg-slate-950/80 border border-white/10 rounded-xl px-4 py-3 text-sm md:text-base text-slate-100 placeholder:text-slate-600 focus:border-cyan-400/70 focus:ring-2 focus:ring-cyan-500/20 focus:outline-none transition-all" style="color-scheme: dark;">
+                        <input id="orderNameInput" type="text" onkeydown="handleOrderInputKey(event)" autocomplete="off" placeholder="팀 이름 입력 후 Enter (예: 단대소고 1팀)" class="flex-1 bg-slate-950/80 border border-white/10 rounded-xl px-4 py-3 text-sm md:text-base text-slate-100 placeholder:text-slate-600 focus:border-cyan-400/70 focus:ring-2 focus:ring-cyan-500/20 focus:outline-none transition-all" style="color-scheme: dark;">
                         <button onclick="addOrderNameFromInput()" class="bg-white/10 hover:bg-white/15 text-white px-5 py-3 rounded-xl text-sm font-bold transition-all shrink-0 border border-white/10">추가</button>
                     </div>
                     <p class="text-[11px] text-slate-500 mt-2 ml-1">Enter 또는 '추가'로 등록 · 쉼표로 여러 개 입력 가능 · 자동 저장</p>
@@ -492,7 +492,7 @@
                     <div class="flex items-center justify-between mt-5 mb-2.5">
                         <span class="text-xs font-bold uppercase tracking-wider text-slate-500">참가 명단 <span id="orderInputCount" class="text-cyan-400 ml-1">0</span></span>
                         <div class="flex items-center gap-3 text-xs">
-                            <button onclick="fillDefaultTeams()" class="text-slate-400 hover:text-cyan-400 font-semibold transition-colors">1~10조 채우기</button>
+                            <button onclick="fillDefaultTeams()" class="text-slate-400 hover:text-cyan-400 font-semibold transition-colors">기본 팀 채우기</button>
                             <span class="w-px h-3 bg-slate-700"></span>
                             <button onclick="clearAllNames()" class="text-slate-400 hover:text-rose-400 font-semibold transition-colors">전체 비우기</button>
                         </div>
@@ -1534,19 +1534,29 @@
 
         /* ---------------- [발표 순서 추첨] ---------------- */
         let orderNames = [];
-        const ORDER_DEFAULTS_VERSION = 'teams10_v1';
+        const ORDER_DEFAULTS_VERSION = 'school_teams_11_v1';
 
         function defaultTeams() {
-            const arr = [];
-            for (let i = 1; i <= 10; i++) arr.push(i + '조');
-            return arr;
+            return [
+                '수도공고 1팀',
+                '단대소고 1팀',
+                '단대소고 2팀',
+                '단대소고 3팀',
+                '단대소고 4팀',
+                '로봇고 1팀',
+                '로봇고 2팀',
+                '로봇고 3팀',
+                '로봇고 4팀',
+                '대진디고 1팀',
+                '대진디고 2팀'
+            ];
         }
 
         function loadOrderNames() {
             const verOk = safeStorage.getItem('orderDefaultsVersion') === ORDER_DEFAULTS_VERSION;
             const saved = safeStorage.getItem('orderNamesList');
             if (!verOk || saved === null) {
-                // 이 버전 최초 실행: 기본 1~10조 채우기
+                // 이 버전 최초 실행: 시트 기준 기본 팀 명단 채우기
                 orderNames = defaultTeams();
                 saveOrderNames();
                 safeStorage.setItem('orderDefaultsVersion', ORDER_DEFAULTS_VERSION);
@@ -1568,7 +1578,7 @@
             orderNames = defaultTeams();
             saveOrderNames();
             renderOrderNameChips();
-            showToast('1조부터 10조까지 채웠습니다.');
+            showToast('시트 기준 기본 팀 명단을 채웠습니다.');
             playBeep(784, 0.12, 'sine');
         }
 
@@ -1611,7 +1621,7 @@
             if (orderNames.length === 0) {
                 const empty = document.createElement('span');
                 empty.className = 'text-sm text-slate-600 py-2 px-1';
-                empty.textContent = '명단이 비어 있어요. 위에서 추가하거나 "1~10조 채우기"를 누르세요.';
+                empty.textContent = '명단이 비어 있어요. 위에서 추가하거나 "기본 팀 채우기"를 누르세요.';
                 list.appendChild(empty);
             } else {
                 orderNames.forEach(function (name, idx) {
@@ -1653,7 +1663,7 @@
 
         function drawOrder() {
             if (orderNames.length < 2) {
-                showToast('⚠️ 조를 2개 이상 남겨 주세요.');
+                showToast('⚠️ 팀을 2개 이상 남겨 주세요.');
                 playBeep(330, 0.3, 'sawtooth');
                 showOrderInputView();
                 return;
@@ -1730,7 +1740,7 @@
             if (titleEl) titleEl.textContent = '총 ' + names.length + '팀';
         }
 
-        // 결과를 스크롤 없이 한 화면에 맞춤: 조 개수에 따라 열 수와 글자 크기를 자동 계산
+        // 결과를 스크롤 없이 한 화면에 맞춤: 팀 개수에 따라 열 수와 글자 크기를 자동 계산
         function fitOrderResult() {
             const wrap = document.getElementById('orderResultWrap');
             const grid = document.getElementById('orderResult');
