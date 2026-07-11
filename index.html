@@ -1046,7 +1046,7 @@
 
                 timerDisplay.innerText = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
 
-                if (hours === 0 && minutes < 30) {
+                if (hours === 0 && minutes < 5) {
                     timerDisplay.classList.add('urgent');
                 } else {
                     timerDisplay.classList.remove('urgent');
